@@ -1,4 +1,4 @@
-from puzzle import Puzzle
+from puzzle.puzzle import Puzzle
 from user import User
 from get_databases_client import get_database
 dbname = get_database()
