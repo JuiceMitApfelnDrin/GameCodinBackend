@@ -1,4 +1,11 @@
+from dataclasses import dataclass, asdict
+
+
+@dataclass
 class Puzzle:
-    def __init__(self, title, json):
-        self.title = title
-        self.json = json
+    title: str
+    json: str
+
+    @property
+    def dict(self):
+        return asdict(self)

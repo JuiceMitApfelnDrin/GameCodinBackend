@@ -1,4 +1,11 @@
+from dataclasses import dataclass, asdict
+
+
+@dataclass
 class User:
-    def __init__(self, username, email):
-        self.username = username
-        self.email = email
+    username: str
+    email: str
+
+    @property
+    def dict(self):
+        return asdict(self)
