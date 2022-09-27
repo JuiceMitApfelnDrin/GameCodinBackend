@@ -1,6 +1,6 @@
+from __future__ import annotations
 from enum import Enum
 from typing import cast
-from __future__ import annotations
 
 
 class GameMode(Enum):
