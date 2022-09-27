@@ -1,10 +1,9 @@
 from puzzle.puzzle import Puzzle
-from src.user.user import User
-from database import Database
-dbname = Database.get_database()
+from ..user.user import User
+from . import client
 
 # example users insert stuff, test data
-collection_name = dbname["users"]
+collection_name = client["users"]
 
 item_1 = User(
     "juicemitapfelndrin",
