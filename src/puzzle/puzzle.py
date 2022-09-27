@@ -8,7 +8,7 @@ class Puzzle:
     title: str
     json: dict
 
-    puzzle: Difficulty = Difficulty.HARD
+    puzzle: str = str(Difficulty.HARD)
 
     @property
     def dict(self):

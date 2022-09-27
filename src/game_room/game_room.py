@@ -1,6 +1,6 @@
 from game_room.game_room_config import GameRoomConfig
 from puzzle.puzzle import Puzzle
-from user import User
+from src.user.user import User
 from dataclasses import dataclass, asdict, field
 
 

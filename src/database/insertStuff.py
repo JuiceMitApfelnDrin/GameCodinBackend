@@ -1,7 +1,7 @@
 from puzzle.puzzle import Puzzle
-from user import User
-from get_databases_client import get_database
-dbname = get_database()
+from src.user.user import User
+from database import Database
+dbname = Database.get_database()
 
 # example users insert stuff, test data
 collection_name = dbname["users"]
@@ -22,13 +22,24 @@ item_4 = User(
     "jutyve",
     "jutyve@dings.com"
 )
+item_5 = User(
+    "murat",
+    "murat@dings.com"
+)
+item_6 = User(
+    "chief",
+    "chief@dings.com"
+)
+
 
 collection_name.insert_many(
     [
         item_1.dict,
         item_2.dict,
+        item_3.dict,
         item_4.dict,
-        item_3.dict
+        item_5.dict,
+        item_6.dict,
     ]
 )
 
