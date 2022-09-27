@@ -11,7 +11,7 @@ class GameMode(Enum):
     @classmethod
     # Return all members other than NONE
     def members(cls) -> tuple[GameMode, ...]:
-        return cast(tuple[GameMode, ...], tuple(e for e in cls._member_map_.values() if e.value))
+        return cast(tuple[GameMode, ...], cls._member_map_.values())
 
     @classmethod
     def find_by_value(cls, value: int) -> GameMode:
