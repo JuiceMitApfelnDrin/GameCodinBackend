@@ -1,4 +1,2 @@
-sanic
-typing
-pymongo
-dotenv
+pymongo~=4.2.0
+sanic~=22.6.0
