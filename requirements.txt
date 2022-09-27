@@ -1,0 +1,4 @@
+sanic
+typing
+pymongo
+dotenv
