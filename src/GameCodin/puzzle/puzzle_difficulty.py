@@ -6,6 +6,7 @@ from typing import cast
 
 class Difficulty(Enum):
     RANDOM = 0
+    # from easy to hard? doesn't make sense to me :thinking:
     EASY = 1
     MEDIUM = 2
     HARD = 3

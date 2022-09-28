@@ -1,16 +1,15 @@
 from dataclasses import dataclass, asdict
 from .puzzle_difficulty import Difficulty
-
+from .validator import Validator
 
 @dataclass
 class Puzzle:
     title: str
     statement: str
     constraints: str
-    author: str
-    testcases: list[testcase]
+    author_id: int
+    validators: tuple[Validator]
     difficulty: Difficulty = Difficulty.MEDIUM
-
 
     @property
     def dict(self):
