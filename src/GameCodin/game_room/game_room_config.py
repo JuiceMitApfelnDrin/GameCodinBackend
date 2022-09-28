@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from game_room.game_mode import GameMode
-from game_room.game_language import Language
+
+from attr import asdict
+from .game_mode import GameMode
+from .game_language import Language
 from puzzle.puzzle_difficulty import Difficulty
-from game_room.game_room_visibility import Visibility
+from .game_room_visibility import Visibility
 
 
 @dataclass
@@ -14,3 +16,7 @@ class GameRoomConfig:
     max_players: int = 50
     visibility: Visibility = Visibility.PUBLIC
     difficulty: Difficulty = Difficulty.RANDOM
+
+    @property
+    def dict(self):
+        return asdict(self)

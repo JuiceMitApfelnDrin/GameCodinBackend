@@ -1,6 +1,5 @@
-from enum import Enum
 from __future__ import annotations
-
+from enum import Enum
 
 class Visibility(Enum):
     PUBLIC = 0

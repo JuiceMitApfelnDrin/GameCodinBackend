@@ -1,14 +1,16 @@
 from dataclasses import dataclass, asdict
-
-from puzzle.puzzle_difficulty import Difficulty
+from .puzzle_difficulty import Difficulty
 
 
 @dataclass
 class Puzzle:
     title: str
-    json: dict
+    statement: str
+    constraints: str
+    author: str
+    testcases: list[testcase]
+    difficulty: Difficulty = Difficulty.MEDIUM
 
-    puzzle: str = str(Difficulty.HARD)
 
     @property
     def dict(self):

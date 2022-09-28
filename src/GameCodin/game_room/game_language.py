@@ -2,29 +2,41 @@ from __future__ import annotations
 from enum import Enum
 from typing import ClassVar
 from dataclasses import dataclass
+from ..utils import static_init
+from . import piston
 
-
+@static_init
 @dataclass
-class Language(Enum):
+class Language:
     __languages: ClassVar[dict[str, Language]]
 
     name: str
-    value: int
+    version: str
+    aliases: list[str]
+    runtime: str
 
     @classmethod
     def static_init(cls):
         cls.__languages = {}
-        # TODO: we need to parse language infos
-        languages = []
-        for language_infos in languages:
-            # A change in the piston API can break our code KEKW
-            language = cls(*language_infos, value=len(cls.__languages))
-            cls.__languages[language.name] = language
+        languages: dict[str,dict] = piston.languages
 
-    # language gets auto added to dict PogU? Might not be the safest idea LUL ---shhhhh
-    # def __post_init__(self):
-    #    self.value = len(self.__languages)
-    #    self.__languages[self.name] = self
+        for lang_name, lang_infos in languages.items():
+            lang_version = lang_infos["version"]
+            lang_aliases = lang_infos["aliases"]
+            lang_runtime = lang_infos.get("runtime","")
+
+            if  not all((type(lang_name) is str,
+                        type(lang_version) is str,
+                        type(lang_aliases) is list[str],
+                        type(lang_runtime) is str)):
+
+                raise TypeError("Piston API: wrong response type")
+
+            # Do we really want to allow all languages ?
+            # There is probably rate limits
+
+            language = cls(lang_name, lang_version, lang_aliases, lang_runtime)
+            cls.__languages[language.name] = language
 
     @classmethod
     def get(cls, name: str):

@@ -9,7 +9,6 @@ class GameMode(Enum):
     SHORTEST = 3
 
     @classmethod
-    # Return all members other than NONE
     def members(cls) -> tuple[GameMode, ...]:
         return cast(tuple[GameMode, ...], cls._member_map_.values())
 

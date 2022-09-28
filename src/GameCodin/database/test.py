@@ -1,9 +1,9 @@
 from puzzle.puzzle import Puzzle
 from ..user.user import User
-from . import client
+from . import db_client
 
 # example users insert stuff, test data
-collection_name = client["users"]
+collection_name = db_client["users"]
 
 item_1 = User(
     "juicemitapfelndrin",
