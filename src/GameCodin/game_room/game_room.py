@@ -34,4 +34,6 @@ class GameRoom:
     
     @property
     def end_time(self):
-        return self.start_time-self.gameroom_config.duration
+        # duration is a value representing the minutes
+        # probably needs to be transformed and then added to start_time
+        return self.start_time+self.gameroom_config.duration
