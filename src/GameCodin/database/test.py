@@ -1,4 +1,4 @@
-from puzzle.puzzle import Puzzle
+from ..puzzle.puzzle import Puzzle
 from ..user.user import User
 from . import db_client
 

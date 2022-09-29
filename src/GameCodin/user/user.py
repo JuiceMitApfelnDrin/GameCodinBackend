@@ -2,19 +2,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
 from typing import ClassVar
-
+from bson.objectid import ObjectId
 from .profile import Profile
 from ..database import db_client
 
+
 @dataclass
 class User:
-    __users: ClassVar[dict[int, User]] = {}
+    # 
+    __current_users: ClassVar[dict[ObjectId, User]] = {}
 
-    user_id: int
-    user_token: str # to authenicate
+    user_id: ObjectId
+    user_token: str  # to authenicate
     username: str
     email: str
-    profile: Profile
+
+    # TODO: for version 2.0:
+    # profile: Profile
 
     @property
     def dict(self):
@@ -22,8 +26,8 @@ class User:
 
     @classmethod
     def get_by_id(cls, user_id: int) -> User:
-        if user_id in cls.__users:
-            return cls.__users[user_id]
+        if user_id in cls.__current_users:
+            return cls.__current_users[user_id]
         user_infos = cls.get_infos_from_db(user_id)
         # TODO: create User from infos
         raise NotImplementedError
@@ -35,7 +39,7 @@ class User:
 
     def __post_init__(self):
         self.__ref_count = 0
-    
+
     @property
     def ref_count(self):
         """
@@ -54,10 +58,10 @@ class User:
 
     def acquire(self):
         if not self.__ref_count:
-            self.__users[self.user_id] = self
+            self.__current_users[self.user_id] = self
         self.__ref_count += 1
-    
+
     def release(self):
         self.__ref_count -= 1
         if not self.__ref_count:
-            del self.__users[self.user_id]
+            del self.__current_users[self.user_id]

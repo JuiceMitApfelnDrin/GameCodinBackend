@@ -1,37 +1,50 @@
+from GameCodin.Submission.submission import Submission
 from .game_room_config import GameRoomConfig
 from puzzle.puzzle import Puzzle
+from bson.objectid import ObjectId
 from ..user.user import User
 from dataclasses import dataclass, asdict, field
 
 
 @dataclass
 class GameRoom:
-    puzzle_id: str
-    puzzle: Puzzle
-    creator: User
+    puzzle_id: ObjectId
+    creator_id: ObjectId
     start_time: int
     gameroom_config: GameRoomConfig
 
-    players: list[User] = field(default_factory=list)
+    results: dict[ObjectId, Submission] = field(
+        default_factory=dict[ObjectId, Submission])
+    players: dict[ObjectId, User] = field(default_factory=dict[ObjectId, User])
 
     @property
     def asdict(self):
-        """
-        Note to juice
-        We want to store this in database so it doesn't make sense
-        to create a dict with objects in them. Those objects needs
-        to also to be convereted to dict, and it doesn't make sense
-        to store all players infos in each gameroom. Because first 
-        of all they can change and also that's using extra space.
-        So we store only the player id instead.
-        """
         gameroom_dict = asdict(self)
-        gameroom_dict["players"] = [player.user_id for player in self.players]
         gameroom_dict["gameroom_config"] = self.gameroom_config.dict
 
+    def start_game(self):
+        # websocket stuff
+        pass
+
+    def end_game(self):
+        # websocket stuff
+        pass
+
     def add_player(self, player: User):
-        self.players.append(player)
-    
+        self.players[player.user_id] = player
+
+    def remove_player(self, user_id: ObjectId):
+        del self.players[user_id]
+
+    def execute(self, code: str, language: str, user_id: str):
+        # TODO:
+        # => fetch puzzle code (validators)
+        # => execute it in pistonapi
+        # => remove users previous result from result list
+        # => add result to result list
+        # => return result
+        return
+
     @property
     def end_time(self):
         # duration is a value representing the minutes
