@@ -1,4 +1,8 @@
+import collections
 from GameCodin.Submission.submission import Submission
+from GameCodin.app.app_routing import puzzle
+from GameCodin.database import db_client
+from GameCodin.database.collection import Collection
 from .game_room_config import GameRoomConfig
 from puzzle.puzzle import Puzzle
 from bson.objectid import ObjectId
@@ -8,7 +12,7 @@ from dataclasses import dataclass, asdict, field
 
 @dataclass
 class GameRoom:
-    puzzle_id: ObjectId
+    puzzle: Puzzle
     creator_id: ObjectId
     start_time: int
     gameroom_config: GameRoomConfig

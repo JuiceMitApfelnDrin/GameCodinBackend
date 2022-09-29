@@ -9,7 +9,7 @@ from ..database import db_client
 
 @dataclass
 class User:
-    # 
+    #
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     user_id: ObjectId
@@ -25,15 +25,15 @@ class User:
         return asdict(self)
 
     @classmethod
-    def get_by_id(cls, user_id: int) -> User:
+    def get_by_id(cls, user_id: ObjectId) -> User:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
-        user_infos = cls.get_infos_from_db(user_id)
+        # user_infos = cls.get_infos_from_db(ObjectId)
         # TODO: create User from infos
         raise NotImplementedError
 
     @classmethod
-    def get_infos_from_db(cls, user_id: int) -> dict:
+    def get_infos_from_db(cls, user_id: ObjectId) -> dict:
         # TODO
         raise NotImplementedError
 

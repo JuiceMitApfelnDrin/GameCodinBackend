@@ -5,7 +5,7 @@ from typing import cast
 
 class PuzzleType(Enum):
     FASTEST = 1
-    REVERSED = 2
+    REVERSE = 2
     SHORTEST = 3
 
     @classmethod
