@@ -11,14 +11,13 @@ from typing import Final, ClassVar, Optional
 
 import json
 
-from GameCodinBackend.src.GameCodin.game_room.game_room import GameRoom
 from .session_packets import RecvPacket, SendPacket
 from .session_expections import SessionException
 from .user import User
 
 @dataclass
 class Session:
-    timeout:  Final = 10 # secs
+    timeout:  ClassVar = 10 # secs
     __sessions: ClassVar[list[Session]] = []
 
     request: Request
@@ -90,3 +89,5 @@ class Session:
     def __del__(self):
         self.__sessions.remove(self)
         self.user.release()
+
+from ..game_room.game_room import GameRoom

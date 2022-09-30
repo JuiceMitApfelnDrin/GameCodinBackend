@@ -27,9 +27,8 @@ class Language:
 
             if  not all((type(lang_name) is str,
                         type(lang_version) is str,
-                        type(lang_aliases) is list[str],
+                        type(lang_aliases) is list,
                         type(lang_runtime) is str)):
-
                 raise TypeError("Piston API: wrong response type")
 
             # Do we really want to allow all languages ?

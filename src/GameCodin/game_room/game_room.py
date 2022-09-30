@@ -14,7 +14,6 @@ from ..database.collection import Collection
 from ..puzzle.puzzle import Puzzle
 from ..puzzle.validator_type import ValidatorType
 from ..user.user import User
-from ..user.session import Session
 from ..user.session_expections import SessionException
 from ..puzzle.validator import Validator
 
@@ -147,3 +146,5 @@ class GameRoom:
         # duration is a value representing the minutes
         # probably needs to be transformed and then added to start_time
         return self.start_time+self.gameroom_config.duration
+
+from ..user.session import Session
