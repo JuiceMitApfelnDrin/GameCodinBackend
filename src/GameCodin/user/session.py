@@ -50,7 +50,6 @@ class Session:
         await self.send(json.dumps(message))
 
     async def send_error(self, error: str, message: str = ""):
-        # Don't know how to format this :|
         await self.send([
             SendPacket.error,
             {   
@@ -80,7 +79,7 @@ class Session:
                 except SessionException as e:
                     await self.send_error(e.__class__.__name__, str(e))
         except (ConnectionClosed, ConnectionClosedError, asyncio.TimeoutError) as e:
-            # LOG ?
+            # XXX: LOG ?
             pass
         finally:
             try:
