@@ -7,8 +7,7 @@ class Submission:
     game_room_id: ObjectId
     puzzle_id: ObjectId
     user_id: ObjectId
-    failed_validators_ids: set[ObjectId]
-    succeeded_validators_ids: set[ObjectId]
+    validators_success: list[bool]
     code: str
 
     # TODO: for version 2.0:

@@ -3,10 +3,10 @@ import collections
 from typing import ClassVar
 from bson.objectid import ObjectId
 from dataclasses import dataclass, asdict, field
-from GameCodinBackend.src.GameCodin.game_room.game_language import Language
+from pistonapi.exceptions import PistonError
 
-from GameCodinBackend.src.GameCodin.game_room.game_room_visibility import Visibility
-
+from .game_language import Language
+from .game_room_visibility import Visibility
 from ..Submission.submission import Submission
 from ..app.app_routing import puzzle
 from ..database import db_client
@@ -16,21 +16,32 @@ from ..puzzle.validator_type import ValidatorType
 from ..user.user import User
 from ..user.session import Session
 from ..user.session_expections import SessionException
+from ..puzzle.validator import Validator
 
 from .game_room_config import GameRoomConfig
 from .game_room_state import State
 from . import piston
 
+
 @dataclass
 class GameRoom:
     __active_gamerooms: ClassVar[dict[ObjectId,GameRoom]]
+
+    game_room_id: ObjectId
     puzzle: Puzzle
     creator_id: ObjectId
     start_time: int
     gameroom_config: GameRoomConfig
 
-    results: list[Submission] = field(default_factory=list)
+    # ObjectId here is the player's ObjectId,
+    # Submission doesn't ahve objectid for the moment
+    # Using player's objectid because we 
+    # want to get player's submission easier to check
+    # If they submited code or not
+    submissions: dict[ObjectId, Submission] = field(default_factory=dict)
     players: dict[ObjectId, User] = field(default_factory=dict)
+
+    # TODO: add spectators to sessions.
     sessions: dict[User, list[Session]] = field(default_factory=dict)
 
     @classmethod
@@ -85,22 +96,51 @@ class GameRoom:
     def remove_player(self, player: User):
         del self.players[player.user_id]
 
-    def execute(self, code: str, language: Language, user_id: str, validator_type: ValidatorType = ValidatorType.TESTCASE) -> Submission:
-        results = []
-        lang = language.name
-        version = language.version
-        for validator in self.puzzle.validators:
-            if validator.validator_type == validator_type:
-                result = piston.execute(language, version, code, validator.stdin, timeout=100)
-                # TODO: deal with special cases
+    async def submit(self, code: str, language: Language, user_id: str):
+        if user_id not in self.players:
+            # TODO: add error message
+            raise SessionException("")
 
-        # TODO:
-        # => fetch puzzle code (validators)
-        # => execute it in pistonapi
-        # => remove users previous result from result list
-        # => add result to result list
-        # => return result
-        raise NotImplementedError
+        if self.gameroom_config.state is State.STARTING:
+            # TODO: add error message
+            raise SessionException("")
+        
+        # TODO: add a special case: player can submit old code
+        if self.gameroom_config.state is State.FINISHING:
+            # TODO: add error message
+            raise SessionException("")
+
+        if self.gameroom_config.state is State.FINISHED:
+            # TODO: add error message
+            raise SessionException("")
+
+        if user_id in self.submissions:
+            # TODO: add error message
+            raise SessionException("")
+
+        # TODO: fix
+        # We need this to lock players from submitting mutliple times.
+        # that creates a problem because the frontend doesn't now anymore if the player finished the submit me or not.
+        # For that we need to add a state to Submission.
+        submission = Submission(self.game_room_id, self.puzzle.puzzle_id, user_id, [], code)
+        self.submissions[user_id] = submission
+
+        for validator in self.puzzle.validators:
+            if validator.validator_type is ValidatorType.VALIDATOR:
+                success, _ = await validator.execute(code, language)
+                submission.validators_success.append(success)
+
+        # TODO: send to all sessions the results 
+
+    async def execute_testcase(self, code: str, language: Language, validator_id: int) -> tuple[bool, str]:
+        validator = self.puzzle.validators[validator_id]
+
+        if validator.validator_type is ValidatorType.VALIDATOR:
+            # TODO: add error message
+            # Player trying to trick us monkaS
+            raise SessionException("")
+
+        return await validator.execute(code, language)
 
     @property
     def end_time(self):
