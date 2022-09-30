@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
-from typing import ClassVar
+from typing import ClassVar, cast
 from bson.objectid import ObjectId
 
 from GameCodin.database.collection import Collection
@@ -31,13 +31,18 @@ class User:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
 
-        user_infos = cls.get_infos_from_db(user_id)
+        try:
+            user_infos = cls.get_infos_from_db(user_id)
+            print(user_infos)
+        except Exception as e:
+            print(e)
         # TODO: create User from infos
-        return user_infos
+        
+        raise NotImplementedError
 
     @classmethod
     def get_infos_from_db(cls, user_id: ObjectId) -> dict:
-        return db_client[Collection.USERS.value].find_one({"_id": user_id})
+        return cast(dict,db_client[Collection.USERS.value].find_one({"_id": user_id}))
 
     def __post_init__(self):
         self.__ref_count = 0
