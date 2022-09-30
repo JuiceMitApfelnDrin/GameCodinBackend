@@ -11,14 +11,13 @@ from typing import Final, ClassVar, Optional
 
 import json
 
-from GameCodinBackend.src.GameCodin.game_room.game_room import GameRoom
 from .session_packets import RecvPacket, SendPacket
 from .session_expections import SessionException
 from .user import User
 
 @dataclass
 class Session:
-    timeout:  Final = 10 # secs
+    timeout:  ClassVar = 10 # secs
     __sessions: ClassVar[list[Session]] = []
 
     request: Request
@@ -50,7 +49,6 @@ class Session:
         await self.send(json.dumps(message))
 
     async def send_error(self, error: str, message: str = ""):
-        # Don't know how to format this :|
         await self.send([
             SendPacket.error,
             {   
@@ -80,7 +78,7 @@ class Session:
                 except SessionException as e:
                     await self.send_error(e.__class__.__name__, str(e))
         except (ConnectionClosed, ConnectionClosedError, asyncio.TimeoutError) as e:
-            # LOG ?
+            # XXX: LOG ?
             pass
         finally:
             try:
@@ -91,3 +89,5 @@ class Session:
     def __del__(self):
         self.__sessions.remove(self)
         self.user.release()
+
+from ..game_room.game_room import GameRoom
