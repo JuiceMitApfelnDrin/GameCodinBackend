@@ -2,17 +2,18 @@ from sanic import text,json
 from sanic.request import Request
 
 from ..user.user import User
+from bson.objectid import ObjectId
 
 from . import app
 
 
 @app.get('/users')
 async def users(request: Request):
-    args = request.query_args
+    args = request.args
     # didn't test this
     # too lazy to add users to database KEKW
     if "id" in args:
-        user = User.get_by_id(args["id"])
+        user = User.get_by_id(ObjectId(args["id"][0]))
         return json(user.dict)
     else:
         # Getting all users from database is a very very bad idea

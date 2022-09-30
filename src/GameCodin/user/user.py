@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict, field
 from typing import ClassVar
 from bson.objectid import ObjectId
+
+from GameCodin.database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
@@ -28,14 +30,14 @@ class User:
     def get_by_id(cls, user_id: ObjectId) -> User:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
-        # user_infos = cls.get_infos_from_db(ObjectId)
+
+        user_infos = cls.get_infos_from_db(user_id)
         # TODO: create User from infos
-        raise NotImplementedError
+        return user_infos
 
     @classmethod
     def get_infos_from_db(cls, user_id: ObjectId) -> dict:
-        # TODO
-        raise NotImplementedError
+        return db_client[Collection.USERS.value].find_one({"_id": user_id})
 
     def __post_init__(self):
         self.__ref_count = 0

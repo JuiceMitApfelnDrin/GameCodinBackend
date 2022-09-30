@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
-from GameCodin.database import db_client
-from GameCodin.database.collection import Collection
+from ..database import db_client
+from ..database.collection import Collection
 
-from GameCodin.puzzle.puzzle_type import PuzzleType
+from ..puzzle.puzzle_type import PuzzleType
 from .puzzle_difficulty import Difficulty
 from bson.objectid import ObjectId
 from .validator import Validator
@@ -37,15 +37,14 @@ class Puzzle:
     ):
         db_client[Collection.PUZZLE.value].insert_one(
             {
-                title: title,
-                statement: statement,
-                constraints: constraints,
-                author_id: author_id,
-                validators: validators,
-                puzzle_types: puzzle_types,
+                "title": title,
+                "statement": statement,
+                "constraints": constraints,
+                "author_id": author_id,
+                "validators": validators,
+                "puzzle_types": puzzle_types,
             }
         )
-        return Puzzle
 
     @property
     def dict(self):
@@ -53,6 +52,7 @@ class Puzzle:
 
     @classmethod
     def get_by_id(cls, puzzle_id: ObjectId) -> Puzzle:
+
         raise NotImplementedError
 
     @classmethod
@@ -62,7 +62,7 @@ class Puzzle:
                 "$match":
                     {
                         "$expr": {
-                            "$in": [puzzle_type.value, "$puzzle_types"]
+                            "$in": ["$puzzle_types", [puzzle_type.value]]
                         }
                     }
             },
