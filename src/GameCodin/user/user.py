@@ -1,23 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
-from typing import ClassVar, cast
+from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
 
 from GameCodin.database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
+from uuid import uuid4
 
 @dataclass
 class User:
-    #
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     user_id: ObjectId
-    user_token: str  # to authenicate
     username: str
     email: str
+    user_token: str = field(default_factory=lambda:uuid4().hex)
 
     # TODO: for version 2.0:
     # profile: Profile
@@ -25,24 +25,25 @@ class User:
     @property
     def dict(self):
         return asdict(self)
-
+    
     @classmethod
-    def get_by_id(cls, user_id: ObjectId) -> User:
+    def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
-
-        try:
-            user_infos = cls.get_infos_from_db(user_id)
-            print(user_infos)
-        except Exception as e:
-            print(e)
-        # TODO: create User from infos
         
-        raise NotImplementedError
+        user_infos = cls.get_infos_from_db(user_id)
+        if user_infos is None: return
+        return User.from_infos(user_infos)
 
     @classmethod
-    def get_infos_from_db(cls, user_id: ObjectId) -> dict:
+    def get_infos_from_db(cls, user_id: ObjectId) -> Optional[dict]:
         return cast(dict,db_client[Collection.USERS.value].find_one({"_id": user_id}))
+
+    @classmethod
+    def from_infos(cls, infos: dict) -> User:
+        # TODO: again didn't test this at all! 
+        # Because didn't setup a db yet
+        return cls(infos["user_id"],infos["username"],infos["email"],infos["user_token"])
 
     def __post_init__(self):
         self.__ref_count = 0

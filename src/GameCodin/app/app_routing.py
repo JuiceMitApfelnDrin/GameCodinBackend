@@ -6,20 +6,20 @@ from bson.objectid import ObjectId
 
 from . import app
 
+# XXX: maybe we should seperate this to differnt modules
+# And put them in their respective folders for exemple users/user_routing.py etc..
+# Or just put them here, and import all of them to here
 
 @app.get('/users')
 async def users(request: Request):
     args = request.args
-    # didn't test this
-    # too lazy to add users to database KEKW
-    if "id" in args:
-        user = User.get_by_id(ObjectId(args["id"][0]))
-        return json(user.dict)
-    else:
-        # Getting all users from database is a very very bad idea
-        # I Suggest to remove this, maybe online users instead ? but in another end-point ?
-        # Or users you follow
-        raise NotImplementedError
+    if "id" not in args:
+        return text("No user_id was provided :(")
+
+    user = User.get_by_id(ObjectId(args["id"][0]))
+    if user is None:
+        return text("Can't find user :(")
+    return json(user.dict)
 
 @app.get('/game')
 async def game(request: Request):

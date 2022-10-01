@@ -32,11 +32,6 @@ class GameRoom:
     start_time: int
     gameroom_config: GameRoomConfig
 
-    # ObjectId here is the player's ObjectId,
-    # Submission doesn't ahve objectid for the moment
-    # Using player's objectid because we 
-    # want to get player's submission easier to check
-    # If they submited code or not
     submissions: dict[ObjectId, Submission] = field(default_factory=dict)
     players: dict[ObjectId, User] = field(default_factory=dict)
 
