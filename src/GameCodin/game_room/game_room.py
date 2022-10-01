@@ -14,7 +14,6 @@ from ..database.collection import Collection
 from ..puzzle.puzzle import Puzzle
 from ..puzzle.validator_type import ValidatorType
 from ..user.user import User
-from ..user.session import Session
 from ..user.session_expections import SessionException
 from ..puzzle.validator import Validator
 
@@ -33,11 +32,6 @@ class GameRoom:
     start_time: int
     gameroom_config: GameRoomConfig
 
-    # ObjectId here is the player's ObjectId,
-    # Submission doesn't ahve objectid for the moment
-    # Using player's objectid because we 
-    # want to get player's submission easier to check
-    # If they submited code or not
     submissions: dict[ObjectId, Submission] = field(default_factory=dict)
     players: dict[ObjectId, User] = field(default_factory=dict)
 
@@ -147,3 +141,5 @@ class GameRoom:
         # duration is a value representing the minutes
         # probably needs to be transformed and then added to start_time
         return self.start_time+self.gameroom_config.duration
+
+from ..user.session import Session
