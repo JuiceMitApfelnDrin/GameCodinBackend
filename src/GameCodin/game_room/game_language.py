@@ -3,8 +3,6 @@ from enum import Enum
 from typing import ClassVar
 from dataclasses import dataclass
 from urllib import response
-
-from torch import isin
 from ..utils import static_init
 from . import piston
 
