@@ -56,6 +56,11 @@ class Puzzle:
         raise NotImplementedError
 
     @classmethod
+    def get_by_author(cls, author_id: ObjectId) -> list[Puzzle]:
+
+        raise NotImplementedError
+
+    @classmethod
     def get_by_type(cls, puzzle_type: PuzzleType) -> Puzzle:
         pipeline = [
             {

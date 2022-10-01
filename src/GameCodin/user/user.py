@@ -49,10 +49,10 @@ class User:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
 
-        user_infos = cls.__get_user_info_from_db(user_id)
-        if user_infos is None:
+        user_info = cls.__get_user_info_from_db(user_id)
+        if user_info is None:
             return
-        return User.from_dict(user_infos)
+        return User.from_dict(user_info)
 
     @classmethod
     def __get_user_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:

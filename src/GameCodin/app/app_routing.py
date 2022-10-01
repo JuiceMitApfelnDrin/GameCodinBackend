@@ -23,9 +23,16 @@ async def users(request: Request):
     return json(user.dict)
 
 
-@app.get('/game')
-async def game(request: Request):
-    return text("Ok")
+# @app.get('/game')
+# async def game(request: Request):
+#     args = request.args
+#     if "id" not in args:
+#         return text("No game_id was provided :(")
+
+#     # game = GameRoom.get_by_id(ObjectId(args["id"][0]))
+#     # if game is None:
+#     #     return text("Can't find user :(")
+    # return json(game.dict)
 
 
 @app.get('/puzzle')

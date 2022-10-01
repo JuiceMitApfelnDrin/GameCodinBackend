@@ -1,6 +1,6 @@
 from __future__ import annotations
 import collections
-from typing import ClassVar
+from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
 from dataclasses import dataclass, asdict, field
 from pistonapi.exceptions import PistonError
@@ -24,7 +24,7 @@ from . import piston
 
 @dataclass
 class GameRoom:
-    __active_gamerooms: ClassVar[dict[ObjectId,GameRoom]]
+    __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
 
     game_room_id: ObjectId
     puzzle: Puzzle
@@ -62,7 +62,7 @@ class GameRoom:
                 state is State.STARTED and
                 visibility is Visibility.PRIVATE):
             raise SessionException("Can't join, game already started!")
-        
+
         user = session.user
         if user not in self.sessions:
             self.sessions[user] = []
@@ -97,7 +97,7 @@ class GameRoom:
         if self.gameroom_config.state is State.STARTING:
             # TODO: add error message
             raise SessionException("")
-        
+
         # TODO: add a special case: player can submit old code
         if self.gameroom_config.state is State.FINISHING:
             # TODO: add error message
@@ -115,7 +115,8 @@ class GameRoom:
         # We need this to lock players from submitting mutliple times.
         # that creates a problem because the frontend doesn't now anymore if the player finished the submit me or not.
         # For that we need to add a state to Submission.
-        submission = Submission(self.game_room_id, self.puzzle.puzzle_id, user_id, [], code)
+        submission = Submission(
+            self.game_room_id, self.puzzle.puzzle_id, user_id, [], code)
         self.submissions[user_id] = submission
 
         for validator in self.puzzle.validators:
@@ -123,7 +124,7 @@ class GameRoom:
                 success, _ = await validator.execute(code, language)
                 submission.validators_success.append(success)
 
-        # TODO: send to all sessions the results 
+        # TODO: send to all sessions the results
 
     async def execute_testcase(self, code: str, language: Language, validator_id: int) -> tuple[bool, str]:
         validator = self.puzzle.validators[validator_id]
