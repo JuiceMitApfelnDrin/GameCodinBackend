@@ -2,49 +2,50 @@
 
 from bson.objectid import ObjectId
 
+from src.GameCodin.user.user import User
 from src.GameCodin.database import db_client
+from src.GameCodin.database.collection import Collection
 from src.GameCodin.puzzle.puzzle import Puzzle
 from src.GameCodin.puzzle.puzzle_type import PuzzleType
 
 # example users insert stuff, test data
-collection_name = db_client["users"]
+collection_name = db_client[Collection.USERS.value]
 
-# item_1 = User(
-#     "juicemitapfelndrin",
-#     "juicemitapfelndrin@dings.com"
-# )
-# item_2 = User(
-#     "Gorn10",
-#     "Gorn10@dings.com"
-# )
-# item_3 = User(
-#     "Hydrazer",
-#     "hydrazer@dings.com"
-# )
-# item_4 = User(
-#     "jutyve",
-#     "jutyve@dings.com"
-# )
-# item_5 = User(
-#     "murat",
-#     "murat@dings.com"
-# )
-# item_6 = User(
-#     "chief",
-#     "chief@dings.com"
-# )
+item_1 = User.create(
+    "juicemitapfelndrin",
+    "juicemitapfelndrin@dings.com"
+)
+item_2 = User.create(
+    "Gorn10",
+    "Gorn10@dings.com"
+)
+item_3 = User.create(
+    "Hydrazer",
+    "hydrazer@dings.com"
+)
+item_4 = User.create(
+    "jutyve",
+    "jutyve@dings.com"
+)
+item_5 = User.create(
+    "murat",
+    "murat@dings.com"
+)
+item_6 = User.create(
+    "chief",
+    "chief@dings.com",
+)
 
-
-# collection_name.insert_many(
-#     [
-#         item_1.dict,
-#         item_2.dict,
-#         item_3.dict,
-#         item_4.dict,
-#         item_5.dict,
-#         item_6.dict,
-#     ]
-# )
+collection_name.insert_many(
+    [
+        item_1.dict,
+        item_2.dict,
+        item_3.dict,
+        item_4.dict,
+        item_5.dict,
+        item_6.dict,
+    ]
+)
 
 # example puzzle insert stuff, test data
 # collection_name = db_client["puzzle"]

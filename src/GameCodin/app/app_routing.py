@@ -1,4 +1,4 @@
-from sanic import text,json
+from sanic import text, json
 from sanic.request import Request
 
 from ..user.user import User
@@ -9,6 +9,7 @@ from . import app
 # XXX: maybe we should seperate this to differnt modules
 # And put them in their respective folders for exemple users/user_routing.py etc..
 # Or just put them here, and import all of them to here
+
 
 @app.get('/users')
 async def users(request: Request):
@@ -21,9 +22,11 @@ async def users(request: Request):
         return text("Can't find user :(")
     return json(user.dict)
 
+
 @app.get('/game')
 async def game(request: Request):
     return text("Ok")
+
 
 @app.get('/puzzle')
 async def puzzle(request: Request):

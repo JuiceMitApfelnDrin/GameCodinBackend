@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
+from distutils.log import info
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
 
@@ -26,8 +27,10 @@ class User:
 
     @property
     def dict(self) -> dict:
-        return asdict(self)
-    
+        infos = asdict(self)
+        infos["user_id"] = str(self.user_id)
+        return infos
+
     @classmethod
     def create(cls, username, email) -> User:
         result = db_client[Collection.USERS.value].insert_one(
@@ -45,18 +48,19 @@ class User:
     def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
         if user_id in cls.__current_users:
             return cls.__current_users[user_id]
-        
-        user_infos = cls.get_infos_from_db(user_id)
-        if user_infos is None: return
+
+        user_infos = cls.__get_user_info_from_db(user_id)
+        if user_infos is None:
+            return
         return User.from_dict(user_infos)
 
     @classmethod
-    def get_infos_from_db(cls, user_id: ObjectId) -> Optional[dict]:
-        return cast(dict,db_client[Collection.USERS.value].find_one({"_id": user_id}))
+    def __get_user_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
+        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": user_id}))
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
-        return cls(infos["user_id"],infos["username"],infos["email"],infos["user_token"])
+        return cls(infos["_id"], infos["username"], infos["email"], infos["user_token"])
 
     def __post_init__(self):
         self.__ref_count = 0
