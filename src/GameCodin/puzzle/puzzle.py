@@ -47,7 +47,7 @@ class Puzzle:
         )
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
         return asdict(self)
 
     @classmethod

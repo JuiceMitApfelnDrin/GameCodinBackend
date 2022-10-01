@@ -19,5 +19,5 @@ class GameRoomConfig:
     # max_players: int = 50
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
         return asdict(self)

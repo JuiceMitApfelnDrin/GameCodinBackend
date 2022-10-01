@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 from .validator_type import ValidatorType
 from ..game_room.game_language import Language
 from ..game_room import piston
 from pistonapi.exceptions import PistonError
 
+@dataclass
 class Validator:
     validator_type: ValidatorType
     input: str

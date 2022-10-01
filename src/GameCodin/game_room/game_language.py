@@ -3,6 +3,8 @@ from enum import Enum
 from typing import ClassVar
 from dataclasses import dataclass
 from urllib import response
+
+from torch import isin
 from ..utils import static_init
 from . import piston
 
@@ -27,12 +29,12 @@ class Language:
             lang_aliases = lang_infos["aliases"]
             lang_runtime = lang_infos.get("runtime", "")
 
-            if not all((type(lang_name) is str,
-                        type(lang_version) is str,
-                        type(lang_aliases) is list,
-                        type(lang_runtime) is str)
-                       ):
-                print(lang_infos)
+            if not (type(lang_name)    is str  and
+                    type(lang_version) is str  and
+                    type(lang_runtime) is str  and
+                    type(lang_aliases) is list and
+                    all(type(alias) is str
+                        for alias in lang_aliases)):
                 raise TypeError("Piston API: wrong response type")
 
             # Do we really want to allow all languages ?

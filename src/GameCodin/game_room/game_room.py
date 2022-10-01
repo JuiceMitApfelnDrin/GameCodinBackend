@@ -43,8 +43,7 @@ class GameRoom:
         return cls.__active_gamerooms[gameroom_id]
 
     @property
-    def asdict(self):
-        # actually asdict applies recursively to dataclass fields
+    def dict(self) -> dict:
         return asdict(self)
 
     def start_game(self):
