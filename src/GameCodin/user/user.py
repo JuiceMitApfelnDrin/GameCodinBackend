@@ -4,11 +4,13 @@ from dataclasses import dataclass, asdict, field
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
 
-from GameCodin.database.collection import Collection
+from ..database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
 from uuid import uuid4
+
+# TODO: make username and email unique for each user
 
 @dataclass
 class User:
@@ -17,7 +19,7 @@ class User:
     user_id: ObjectId
     username: str
     email: str
-    user_token: str = field(default_factory=lambda:uuid4().hex)
+    user_token: str
 
     # TODO: for version 2.0:
     # profile: Profile
@@ -26,6 +28,19 @@ class User:
     def dict(self) -> dict:
         return asdict(self)
     
+    @classmethod
+    def create(cls, username, email) -> User:
+        result = db_client[Collection.USERS.value].insert_one(
+            {
+                "username": username,
+                "email": email,
+                "user_token": uuid4().hex,
+            }
+        )
+        user = User.get_by_id(result.inserted_id)
+        assert user is not None
+        return user
+
     @classmethod
     def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
         if user_id in cls.__current_users:

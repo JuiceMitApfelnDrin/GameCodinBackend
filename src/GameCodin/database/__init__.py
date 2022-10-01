@@ -17,8 +17,6 @@ from dotenv import load_dotenv
 envpath = os.path.abspath(os.path.join(os.path.dirname(__file__),'../env/.env'))
 load_dotenv(envpath)
 
-os.environ['DATABASE_CONNECTION_STRING'] = "gorn bruh"
-
 database_name="GameCodin"
 connection_string: Final = os.environ['DATABASE_CONNECTION_STRING']
 db_client: Final = MongoClient(connection_string, server_api=ServerApi('1'))[database_name]
