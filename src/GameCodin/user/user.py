@@ -23,7 +23,7 @@ class User:
     # profile: Profile
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
         return asdict(self)
     
     @classmethod
@@ -33,16 +33,14 @@ class User:
         
         user_infos = cls.get_infos_from_db(user_id)
         if user_infos is None: return
-        return User.from_infos(user_infos)
+        return User.from_dict(user_infos)
 
     @classmethod
     def get_infos_from_db(cls, user_id: ObjectId) -> Optional[dict]:
         return cast(dict,db_client[Collection.USERS.value].find_one({"_id": user_id}))
 
     @classmethod
-    def from_infos(cls, infos: dict) -> User:
-        # TODO: again didn't test this at all! 
-        # Because didn't setup a db yet
+    def from_dict(cls, infos: dict) -> User:
         return cls(infos["user_id"],infos["username"],infos["email"],infos["user_token"])
 
     def __post_init__(self):
@@ -50,18 +48,6 @@ class User:
 
     @property
     def ref_count(self):
-        """
-        TODO: decide
-        ref_count keeps track of number of times the user is refrenced
-        somewhere to decide if it should be kept alive we want only
-        users that are online or in a gameroom that didn't end yet
-        to be kept in memory otherwise load it from database when its needed.
-        why do we this ? Keeping all users in mem doesn't make sense
-        + because the gamerooms have lists of users not their ids
-        so we need to keep those in memory. 
-        I think that using ids and create a temp User object from db whenever need it
-        might be a better idea ?
-        """
         return self.__ref_count
 
     def acquire(self):

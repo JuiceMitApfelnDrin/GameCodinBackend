@@ -27,16 +27,19 @@ class Session:
 
     async def __auth(self):
         packet_id, user_id, user_token = asyncio.run(self.recv())
+
         if packet_id != RecvPacket.auth:
             raise ValueError
+
         user = User.get_by_id(user_id)
-        if user.user_token != user_token:
+
+        if  user is None or\
+            user.user_token != user_token:
             return
 
         user.acquire()
         self.user = user
         self.__sessions.append(self)
-        await self.ws_handler()
 
     async def recv(self) -> list:
         message = await self.ws.recv(self.timeout)
@@ -59,6 +62,7 @@ class Session:
 
     async def ws_handler(self):
         # TODO: make each packet handling a seperate function because it's pretty messy!
+        await self.__auth()
         try:
             while True:
                 packet_id, *message = await self.recv()

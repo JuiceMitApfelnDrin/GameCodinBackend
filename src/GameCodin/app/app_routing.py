@@ -25,7 +25,6 @@ async def users(request: Request):
 async def game(request: Request):
     return text("Ok")
 
-
 @app.get('/puzzle')
 async def puzzle(request: Request):
     return text("Ok")
