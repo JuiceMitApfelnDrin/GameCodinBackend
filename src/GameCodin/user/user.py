@@ -5,7 +5,7 @@ from distutils.log import info
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
 
-from ..database.collection import Collection
+from GameCodin.database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
