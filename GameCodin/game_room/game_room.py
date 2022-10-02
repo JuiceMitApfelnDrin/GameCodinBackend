@@ -62,7 +62,7 @@ class GameRoom:
             "creator_id": self.creator_id,
             "configuration": self.configuration.as_dict(),
             "puzzle": self.puzzle.puzzle_id,
-            "start_time": self.start_time,
+            "start_time": self.start_time.isoformat(),
             "submissions": list(self.submissions.keys()),
         }
 
