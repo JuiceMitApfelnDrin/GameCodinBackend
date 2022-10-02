@@ -6,6 +6,11 @@ from .game_language import Language
 from .game_room_visibility import Visibility
 from .game_room_state import State
 
+# TODO: for version 0.2.0:
+# difficulty: Difficulty = Difficulty.RANDOM
+# max_players: int = 50
+
+
 @dataclass
 class GameRoomConfig:
     game_mode: PuzzleType
@@ -14,9 +19,6 @@ class GameRoomConfig:
     duration: int = 15
     visibility: Visibility = Visibility.PUBLIC
     state: State = State.STARTING
-    # TODO: for version 2.0:
-    # difficulty: Difficulty = Difficulty.RANDOM
-    # max_players: int = 50
 
     @property
     def dict(self) -> dict:

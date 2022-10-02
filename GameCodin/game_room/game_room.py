@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..user.session import Session
 import collections
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
@@ -7,7 +8,7 @@ from pistonapi.exceptions import PistonError
 
 from .game_language import Language
 from .game_room_visibility import Visibility
-from ..Submission.submission import Submission
+from ..submission.submission import Submission
 from ..app.app_routing import puzzle
 from ..database import db_client
 from ..database.collection import Collection
@@ -23,10 +24,14 @@ from . import piston
 
 from ..utils import asdict
 
+
+# TODO: for version 0.2.0:
+# submitted_at: int => allow users to submit one last time after round ends?
+
 @dataclass
 class GameRoom:
     __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
-    
+
     game_room_id: ObjectId
     puzzle: Puzzle
     creator_id: ObjectId
@@ -112,33 +117,17 @@ class GameRoom:
             # TODO: add error message
             raise SessionException("")
 
-        submission = Submission(
-            self.game_room_id, self.puzzle.puzzle_id, user_id, [], code, False)
+        submission = Submission.create(
+            puzzle_id=self.puzzle.puzzle_id, user_id=user_id, code=code, language=language)
+        assert submission is not None
         self.submissions[user_id] = submission
 
-        for validator in self.puzzle.validators:
-            if validator.validator_type is ValidatorType.VALIDATOR:
-                success, _ = await validator.execute(code, language)
-                submission.validators_success.append(success)
-
-        submission.execution_finished = True
+        await submission.execute_testcases(self.puzzle)
 
         # TODO: send to all sessions the results
-
-    async def execute_testcase(self, code: str, language: Language, validator_id: int) -> tuple[bool, str]:
-        validator = self.puzzle.validators[validator_id]
-
-        if validator.validator_type is ValidatorType.VALIDATOR:
-            # TODO: add error message
-            # Player trying to trick us monkaS
-            raise SessionException("")
-
-        return await validator.execute(code, language)
 
     @property
     def end_time(self):
         # duration is a value representing the minutes
         # probably needs to be transformed and then added to start_time
         return self.start_time+self.gameroom_config.duration
-
-from ..user.session import Session

@@ -15,6 +15,9 @@ from ..utils import asdict
 
 # TODO: make username and email unique for each user
 
+# TODO: for version 0.2.0:
+# profile: Profile
+
 @dataclass
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
@@ -23,9 +26,6 @@ class User:
     username: str
     email: str
     user_token: str
-
-    # TODO: for version 2.0:
-    # profile: Profile
 
     @property
     def dict(self) -> dict:
@@ -62,7 +62,7 @@ class User:
     @classmethod
     def from_dict(cls, infos: dict) -> User:
         return cls(ObjectId(infos.get("_id") or infos["user_id"]),
-                infos["username"], infos["email"], infos["user_token"])
+                   infos["username"], infos["email"], infos["user_token"])
 
     def __post_init__(self):
         self.__ref_count = 0

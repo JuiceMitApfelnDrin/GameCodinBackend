@@ -3,7 +3,7 @@ from sanic.request import Request
 from . import app
 from ..user.session import Session
 
-app.config.WEBSOCKET_MAX_SIZE = 64
+app.config.WEBSOCKET_MAX_SIZE = 128
 app.config.WEBSOCKET_PING_INTERVAL = None  # type: ignore
 app.config.WEBSOCKET_PING_TIMEOUT = None  # type: ignore
 
