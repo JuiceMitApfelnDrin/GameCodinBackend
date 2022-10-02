@@ -26,7 +26,8 @@ class GameRoom:
     start_time: datetime
     submissions: dict[ObjectId, Submission] = field(default_factory=dict)
 
-    def __init__(
+    @classmethod
+    def create(
             self,
             *,
             creator_id: ObjectId,
