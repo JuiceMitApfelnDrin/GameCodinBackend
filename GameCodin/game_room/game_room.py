@@ -2,7 +2,7 @@ from __future__ import annotations
 import collections
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from pistonapi.exceptions import PistonError
 
 from .game_language import Language
@@ -21,6 +21,7 @@ from .game_room_config import GameRoomConfig
 from .game_room_state import State
 from . import piston
 
+from ..utils import asdict
 
 @dataclass
 class GameRoom:

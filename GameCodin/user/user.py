@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from distutils.log import info
 from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
+from uuid import uuid4
 
 from GameCodin.database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
-from uuid import uuid4
+from ..utils import asdict
+
 
 # TODO: make username and email unique for each user
 
@@ -59,8 +61,8 @@ class User:
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
-        user_id = infos.get("_id") or infos["user_id"]
-        return cls(user_id, infos["username"], infos["email"], infos["user_token"])
+        return cls(ObjectId(infos.get("_id") or infos["user_id"]),
+                infos["username"], infos["email"], infos["user_token"])
 
     def __post_init__(self):
         self.__ref_count = 0

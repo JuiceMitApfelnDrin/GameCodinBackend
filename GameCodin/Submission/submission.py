@@ -1,6 +1,7 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from bson.objectid import ObjectId
 
+from ..utils import asdict
 
 @dataclass
 class Submission:

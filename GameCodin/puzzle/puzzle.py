@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from typing import Optional, cast
 from ..database import db_client
 from ..database.collection import Collection
@@ -10,6 +10,7 @@ from .puzzle_difficulty import Difficulty
 from bson.objectid import ObjectId
 from .validator import Validator
 
+from ..utils import asdict
 
 @dataclass
 class Puzzle:
@@ -28,7 +29,7 @@ class Puzzle:
 
     @classmethod
     def create(cls, title, statement, constraints,
-            author_id, validators, puzzle_types) -> Puzzle:
+            author_id, validators, puzzle_types) -> Optional[Puzzle]:
 
         result = db_client[Collection.PUZZLE.value].insert_one(
             {
@@ -45,13 +46,13 @@ class Puzzle:
 
     @classmethod
     def from_dict(cls, info: dict) -> Puzzle:
-        return cls(info.get("_id") or info["puzzle_id"],
+        return cls(ObjectId(info.get("_id") or info["puzzle_id"]),
                 info["title"],
                 info["statement"],
                 info["constraints"],
                 info["author_id"],
                 info["validators"],
-                info["puzzle_type"])
+                info["puzzle_types"])
 
     @property
     def dict(self) -> dict:
@@ -69,11 +70,15 @@ class Puzzle:
         return cast(dict, db_client[Collection.PUZZLE.value].find_one({"_id": puzzle_id}))
 
     @classmethod
-    def get_by_author(cls, author_id: ObjectId) -> list[Puzzle]:
-        raise NotImplementedError
+    def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle]:
+        cursor = db_client[Collection.PUZZLE.value].find({"author_id": author_id})
+        return tuple(map(Puzzle.from_dict,cursor))
 
     @classmethod
     def get_by_type(cls, puzzle_type: PuzzleType) -> Puzzle:
+        """
+        raises an error if there is no puzzles of that type
+        """
         pipeline = [
             {
                 "$match":
@@ -89,5 +94,5 @@ class Puzzle:
                 }
             },
         ]
-        result = db_client[Collection.PUZZLE.value].aggregate(pipeline)
-        return Puzzle.from_dict(result.next())
+        cursor = db_client[Collection.PUZZLE.value].aggregate(pipeline)
+        return Puzzle.from_dict(cursor.next())

@@ -70,3 +70,6 @@ item_1 = Puzzle.create(
 
 # test query stuff from db
 print(Puzzle.get_by_type(PuzzleType.FASTEST))
+
+
+print(Puzzle.get_by_author(author_id=ObjectId("6333585a0b6e7d94a0c64ce3")))

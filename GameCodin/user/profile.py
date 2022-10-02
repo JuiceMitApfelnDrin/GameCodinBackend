@@ -1,4 +1,5 @@
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
+from ..utils import ObjectId
 
 # TODO: for version 2.0
 @dataclass
