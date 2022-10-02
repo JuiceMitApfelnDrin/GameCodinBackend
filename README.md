@@ -10,6 +10,8 @@ How is it planned?
 
 Check it [here](https://excalidraw.com/#json=VAclpcNvHgU1IEO3uDhSk,uvj6jSL_QFl0PyonWV3qmQ).
 
-
-# TODOS/EXTENSIONS
-- gamemode: CO-OP
+# Setup
+### .env
+```
+DATABASE_CONNECTION_STRING=mongodb_connection_string
+```
