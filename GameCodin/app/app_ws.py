@@ -1,10 +1,6 @@
 from sanic.server.websockets.impl import WebsocketImplProtocol
 from sanic.request import Request
-from typing import Final
-from sanic import Sanic
-from sanic.response import text
 from . import app
-from ..user.user import User
 from ..user.session import Session
 
 app.config.WEBSOCKET_MAX_SIZE = 64

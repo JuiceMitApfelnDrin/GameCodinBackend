@@ -1,5 +1,3 @@
-
-
 from bson.objectid import ObjectId
 
 from GameCodin.user.user import User
@@ -67,9 +65,3 @@ item_1 = Puzzle.create(
          "output": "1\\n2\\n3\\n4\\n5\\n6\\n7\\n8\\n9\\n10"}
     ]
 )
-
-# test query stuff from db
-print(Puzzle.get_by_type(PuzzleType.FASTEST))
-
-
-print(Puzzle.get_by_author(author_id=ObjectId("6333585a0b6e7d94a0c64ce3")))

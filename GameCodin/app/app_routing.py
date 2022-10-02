@@ -2,7 +2,6 @@ from sanic import text, json
 from sanic.request import Request
 
 from ..puzzle.puzzle import Puzzle
-from ..puzzle.puzzle_type import PuzzleType
 
 from ..user.user import User
 from bson.objectid import ObjectId
