@@ -4,20 +4,18 @@ from ..puzzle.puzzle_type import PuzzleType
 from .game_language import Language
 # from puzzle.puzzle_difficulty import Difficulty
 from .game_room_visibility import Visibility
-from .game_room_state import State
+from .game_room_state import GameRoomState
 
 @dataclass
 class GameRoomConfig:
     game_mode: PuzzleType
     languages: list[Language]
 
-    duration: int = 15
+    duration_minutes: int = 15
     visibility: Visibility = Visibility.PUBLIC
-    state: State = State.STARTING
     # TODO: for version 2.0:
     # difficulty: Difficulty = Difficulty.RANDOM
     # max_players: int = 50
 
-    @property
-    def dict(self) -> dict:
+    def as_dict(self) -> dict:
         return asdict(self)

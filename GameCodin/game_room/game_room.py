@@ -1,144 +1,121 @@
 from __future__ import annotations
-import collections
-from typing import ClassVar, Optional, cast
-from bson.objectid import ObjectId
+from datetime import datetime
+from datetime import timedelta
+from typing import ClassVar
 from dataclasses import dataclass, field
-from pistonapi.exceptions import PistonError
 
-from .game_language import Language
-from .game_room_visibility import Visibility
+from bson.objectid import ObjectId
+
 from ..Submission.submission import Submission
-from ..app.app_routing import puzzle
-from ..database import db_client
-from ..database.collection import Collection
 from ..puzzle.puzzle import Puzzle
-from ..puzzle.validator_type import ValidatorType
-from ..user.user import User
-from ..user.session_expections import SessionException
-from ..puzzle.validator import Validator
-
 from .game_room_config import GameRoomConfig
-from .game_room_state import State
-from . import piston
+from .game_room_state import GameRoomState
 
-from ..utils import asdict
 
 @dataclass
 class GameRoom:
+    class SubmissionException(Exception):
+        """Exception that gets raised when adding a submission fails"""
+
     __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
-    
+
     game_room_id: ObjectId
-    puzzle: Puzzle
     creator_id: ObjectId
-    start_time: int
-    gameroom_config: GameRoomConfig
-
+    configuration: GameRoomConfig
+    puzzle: Puzzle
+    start_time: datetime
     submissions: dict[ObjectId, Submission] = field(default_factory=dict)
-    players: dict[ObjectId, User] = field(default_factory=dict)
 
-    # TODO: add spectators to sessions.
-    sessions: dict[User, list[Session]] = field(default_factory=dict)
+    def __init__(
+            self,
+            *,
+            creator_id: ObjectId,
+            puzzle: Puzzle,
+            config: GameRoomConfig
+    ):
+        # I think the object id should come from the database?
+        self.game_room_id = ObjectId()
+        self.creator_id = creator_id
+        self.configuration = config
+        self.puzzle = puzzle
+        # this should give the host enough time to launch the game
+        self.start_time = datetime(6969, 6, 9)
+        self.submissions = {}
+        self._finished = False
 
     @classmethod
-    def get_active_gameroom(cls, gameroom_id: ObjectId):
+    def get_active_gameroom(cls, gameroom_id: ObjectId) -> GameRoom:
+        """
+        Tries to find a GameRoom object with the given id from memory.
+        Raises an exception if a GameRoom with that id does not exist in
+        memory (it may still exist in the database).
+        """
         return cls.__active_gamerooms[gameroom_id]
 
-    @property
-    def dict(self) -> dict:
-        return asdict(self)
-
-    def start_game(self):
-        # websocket stuff
-        pass
-
-    def end_game(self):
-        # websocket stuff
-        pass
-
-    def add_session(self, session: Session):
-        state = self.gameroom_config
-        visibility = self.gameroom_config.visibility
-
-        if not (state is State.STARTING or
-                state is State.STARTED and
-                visibility is Visibility.PRIVATE):
-            raise SessionException("Can't join, game already started!")
-
-        user = session.user
-        if user not in self.sessions:
-            self.sessions[user] = []
-        self.sessions[user].append(session)
-        self.add_player(user)
-
-    def remove_session(self, session: Session):
-        player = session.user
-        if player not in self.sessions:
-            raise SessionException("User is not in gameroom!")
-
-        sessions = self.sessions[player]
-        if session not in sessions:
-            raise SessionException("Session is not in gameroom!")
-
-        sessions.remove(session)
-
-        if not sessions and self.gameroom_config.state is State.STARTING:
-            self.remove_player(player)
-
-    def add_player(self, player: User):
-        self.players[player.user_id] = player
-
-    def remove_player(self, player: User):
-        del self.players[player.user_id]
-
-    async def submit(self, code: str, language: Language, user_id: str):
-        if user_id not in self.players:
-            # TODO: add error message
-            raise SessionException("")
-
-        if self.gameroom_config.state is State.STARTING:
-            # TODO: add error message
-            raise SessionException("")
-
-        # TODO: add a special case: player can submit old code
-        if self.gameroom_config.state is State.FINISHING:
-            # TODO: add error message
-            raise SessionException("")
-
-        if self.gameroom_config.state is State.FINISHED:
-            # TODO: add error message
-            raise SessionException("")
-
-        if user_id in self.submissions:
-            # TODO: add error message
-            raise SessionException("")
-
-        submission = Submission(
-            self.game_room_id, self.puzzle.puzzle_id, user_id, [], code, False)
-        self.submissions[user_id] = submission
-
-        for validator in self.puzzle.validators:
-            if validator.validator_type is ValidatorType.VALIDATOR:
-                success, _ = await validator.execute(code, language)
-                submission.validators_success.append(success)
-
-        submission.execution_finished = True
-
-        # TODO: send to all sessions the results
-
-    async def execute_testcase(self, code: str, language: Language, validator_id: int) -> tuple[bool, str]:
-        validator = self.puzzle.validators[validator_id]
-
-        if validator.validator_type is ValidatorType.VALIDATOR:
-            # TODO: add error message
-            # Player trying to trick us monkaS
-            raise SessionException("")
-
-        return await validator.execute(code, language)
+    def as_dict(self) -> dict:
+        """
+        Return a representation of the game room that can be inserted
+        into a MongoDB collection using .insert_one() method.
+        """
+        return {
+            "_id": self.game_room_id,
+            "creator_id": self.creator_id,
+            "configuration": self.configuration.as_dict(),
+            "puzzle": self.puzzle.puzzle_id,
+            "start_time": self.start_time,
+            "submissions": list(self.submissions.keys()),
+        }
 
     @property
-    def end_time(self):
-        # duration is a value representing the minutes
-        # probably needs to be transformed and then added to start_time
-        return self.start_time+self.gameroom_config.duration
+    def end_time(self) -> datetime:
+        """Returns the end time """
+        return self.start_time + timedelta(minutes=self.configuration.duration_minutes)
 
-from ..user.session import Session
+    def add_submission(self, submission: Submission):
+        """
+        Adds a new submission to the game room. The submission should
+        be validated and scored before adding it to the game room.
+        Raises an exception when trying to add a submission while the
+        game is not in progress.
+        """
+        state = self.state()
+        if state == GameRoomState.WAITING_FOR_PLAYERS:
+            raise GameRoom.SubmissionException("Can't add submission: Game hasn't started yet!")
+        if state == GameRoomState.FINISHED:
+            raise GameRoom.SubmissionException("Can't add submission: Game is already finalized!")
+        self.submissions[submission.id] = submission
+
+    def finalize(self):
+        """
+        This method should be called when all submissions have been processed.
+        After finalizing no new submissions can be added
+        """
+        self._finished = True
+
+    def launch_game(self, start_time: datetime | None = None):
+        """
+        Sets the start time for the game to current datetime.
+        After calling the game room starts accepting submissions.
+        Called when the host decides the game has enough players to start.
+        """
+        if start_time is None:
+            self.start_time = datetime.now()
+        else:
+            self.start_time = start_time
+
+    def state(self) -> GameRoomState:
+        """
+        Returns the state of the game room.
+        WAITING_FOR_PLAYERS = the game has not started yet
+        IN_PROGRESS = the game has started and it is accepting submissions
+        PROCESSING_FINAL_SUBMISSIONS = game has ended but there are still submissions in queue
+        FINISHED = game has ended and no new submissions are accepted
+        """
+        now = datetime.now()
+        if self._finished:
+            return GameRoomState.FINISHED
+        if now < self.start_time:
+            return GameRoomState.WAITING_FOR_PLAYERS
+        if now < self.end_time:
+            return GameRoomState.IN_PROGRESS
+        return GameRoomState.PROCESSING_FINAL_SUBMISSIONS
