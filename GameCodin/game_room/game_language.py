@@ -10,7 +10,7 @@ from . import piston
 @static_init
 @dataclass
 class Language:
-    __languages: ClassVar[dict[str, Language]]
+    __languages: ClassVar[dict[str, Language]] = {}
 
     name: str
     version: str
@@ -19,7 +19,6 @@ class Language:
 
     @classmethod
     def static_init(cls):
-        cls.__languages = {}
         languages: dict[str, dict] = piston.languages
 
         for lang_name, lang_infos in languages.items():

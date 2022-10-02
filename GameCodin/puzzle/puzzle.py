@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
+from typing import Optional, cast
 from ..database import db_client
 from ..database.collection import Collection
 
@@ -26,16 +27,10 @@ class Puzzle:
     difficulty: Difficulty = Difficulty.MEDIUM
 
     @classmethod
-    def create(
-        cls,
-        title,
-        statement,
-        constraints,
-        author_id,
-        validators,
-        puzzle_types
-    ):
-        db_client[Collection.PUZZLE.value].insert_one(
+    def create(cls, title, statement, constraints,
+            author_id, validators, puzzle_types) -> Puzzle:
+
+        result = db_client[Collection.PUZZLE.value].insert_one(
             {
                 "title": title,
                 "statement": statement,
@@ -46,18 +41,35 @@ class Puzzle:
             }
         )
 
+        return cls.get_by_id(result.inserted_id)
+
+    @classmethod
+    def from_dict(cls, info: dict) -> Puzzle:
+        return cls(info.get("_id") or info["puzzle_id"],
+                info["title"],
+                info["statement"],
+                info["constraints"],
+                info["author_id"],
+                info["validators"],
+                info["puzzle_type"])
+
     @property
     def dict(self) -> dict:
         return asdict(self)
 
     @classmethod
-    def get_by_id(cls, puzzle_id: ObjectId) -> Puzzle:
+    def get_by_id(cls, user_id: ObjectId) -> Optional[Puzzle]:
+        user_info = cls.__get_puzzle_info_from_db(user_id)
+        if user_info is None:
+            return
+        return Puzzle.from_dict(user_info)
 
-        raise NotImplementedError
+    @classmethod
+    def __get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
+        return cast(dict, db_client[Collection.PUZZLE.value].find_one({"_id": puzzle_id}))
 
     @classmethod
     def get_by_author(cls, author_id: ObjectId) -> list[Puzzle]:
-
         raise NotImplementedError
 
     @classmethod
@@ -66,8 +78,8 @@ class Puzzle:
             {
                 "$match":
                     {
-                        "$expr": {
-                            "$in": ["$puzzle_types", [puzzle_type.value]]
+                        "puzzle_types": {
+                            "$in": [puzzle_type.value]
                         }
                     }
             },
@@ -77,5 +89,5 @@ class Puzzle:
                 }
             },
         ]
-        db_client[Collection.PUZZLE.value].aggregate(pipeline)
-        raise NotImplementedError
+        result = db_client[Collection.PUZZLE.value].aggregate(pipeline)
+        return Puzzle.from_dict(result.next())

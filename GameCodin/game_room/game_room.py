@@ -25,7 +25,7 @@ from . import piston
 @dataclass
 class GameRoom:
     __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
-
+    
     game_room_id: ObjectId
     puzzle: Puzzle
     creator_id: ObjectId
@@ -54,7 +54,7 @@ class GameRoom:
         # websocket stuff
         pass
 
-    def add_sesssion(self, session: Session):
+    def add_session(self, session: Session):
         state = self.gameroom_config
         visibility = self.gameroom_config.visibility
 
@@ -111,18 +111,16 @@ class GameRoom:
             # TODO: add error message
             raise SessionException("")
 
-        # TODO: fix
-        # We need this to lock players from submitting mutliple times.
-        # that creates a problem because the frontend doesn't now anymore if the player finished the submit me or not.
-        # For that we need to add a state to Submission.
         submission = Submission(
-            self.game_room_id, self.puzzle.puzzle_id, user_id, [], code)
+            self.game_room_id, self.puzzle.puzzle_id, user_id, [], code, False)
         self.submissions[user_id] = submission
 
         for validator in self.puzzle.validators:
             if validator.validator_type is ValidatorType.VALIDATOR:
                 success, _ = await validator.execute(code, language)
                 submission.validators_success.append(success)
+
+        submission.execution_finished = True
 
         # TODO: send to all sessions the results
 

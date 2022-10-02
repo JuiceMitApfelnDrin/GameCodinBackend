@@ -2,11 +2,11 @@
 
 from bson.objectid import ObjectId
 
-from src.GameCodin.user.user import User
-from src.GameCodin.database import db_client
-from src.GameCodin.database.collection import Collection
-from src.GameCodin.puzzle.puzzle import Puzzle
-from src.GameCodin.puzzle.puzzle_type import PuzzleType
+from GameCodin.user.user import User
+from GameCodin.database import db_client
+from GameCodin.database.collection import Collection
+from GameCodin.puzzle.puzzle import Puzzle
+from GameCodin.puzzle.puzzle_type import PuzzleType
 
 # example users insert stuff, test data
 collection_name = db_client[Collection.USERS.value]
@@ -35,6 +35,8 @@ item_6 = User.create(
     "chief",
     "chief@dings.com",
 )
+
+assert item_1 and item_2 and item_3 and item_4 and item_5 and item_6
 
 collection_name.insert_many(
     [

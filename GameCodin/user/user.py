@@ -32,7 +32,7 @@ class User:
         return infos
 
     @classmethod
-    def create(cls, username, email) -> User:
+    def create(cls, username, email) -> Optional[User]:
         result = db_client[Collection.USERS.value].insert_one(
             {
                 "username": username,
@@ -41,7 +41,6 @@ class User:
             }
         )
         user = User.get_by_id(result.inserted_id)
-        assert user is not None
         return user
 
     @classmethod
@@ -60,7 +59,8 @@ class User:
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
-        return cls(infos["_id"], infos["username"], infos["email"], infos["user_token"])
+        user_id = infos.get("_id") or infos["user_id"]
+        return cls(user_id, infos["username"], infos["email"], infos["user_token"])
 
     def __post_init__(self):
         self.__ref_count = 0
