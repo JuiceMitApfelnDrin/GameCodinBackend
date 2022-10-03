@@ -12,37 +12,44 @@ from .game_room_config import GameRoomConfig
 from .game_room_state import GameRoomState
 
 
-@dataclass
+@dataclass(eq=False, kw_only=True)
 class GameRoom:
     class SubmissionException(Exception):
         """Exception that gets raised when adding a submission fails"""
 
     __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
 
-    game_room_id: ObjectId
+    game_room_id: ObjectId = field(default_factory=ObjectId)
     creator_id: ObjectId
     configuration: GameRoomConfig
     puzzle: Puzzle
-    start_time: datetime
+
+    # this should give the host enough time to launch the game
+    start_time: datetime = field(default_factory=lambda: datetime(6969, 6, 9))
+
     submissions: dict[ObjectId, Submission] = field(default_factory=dict)
+
+    # this should really be a "private" member but idk how to do that with dataclass,
+    # so let's just count on users of the class to not touch it
+    finished: bool = field(repr=False, default=False)
 
     @classmethod
     def create(
-            self,
+            cls,
             *,
             creator_id: ObjectId,
             puzzle: Puzzle,
             config: GameRoomConfig
     ):
-        # I think the object id should come from the database?
-        self.game_room_id = ObjectId()
-        self.creator_id = creator_id
-        self.configuration = config
-        self.puzzle = puzzle
-        # this should give the host enough time to launch the game
-        self.start_time = datetime(6969, 6, 9)
-        self.submissions = {}
-        self._finished = False
+        new_room_id = ObjectId()
+        new_room = cls(
+            game_room_id=new_room_id,
+            creator_id=creator_id,
+            configuration=config,
+            puzzle=puzzle
+        )
+        cls.__active_gamerooms[new_room_id] = new_room
+        return new_room
 
     @classmethod
     def get_active_gameroom(cls, gameroom_id: ObjectId) -> GameRoom:
@@ -91,7 +98,7 @@ class GameRoom:
         This method should be called when all submissions have been processed.
         After finalizing no new submissions can be added
         """
-        self._finished = True
+        self.finished = True
 
     def launch_game(self, start_time: datetime | None = None):
         """
@@ -113,7 +120,7 @@ class GameRoom:
         FINISHED = game has ended and no new submissions are accepted
         """
         now = datetime.now()
-        if self._finished:
+        if self.finished:
             return GameRoomState.FINISHED
         if now < self.start_time:
             return GameRoomState.WAITING_FOR_PLAYERS
