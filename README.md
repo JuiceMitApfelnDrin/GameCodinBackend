@@ -8,7 +8,7 @@ The (current) goal of this repo is to receive the code from the users, execute i
 - What still needs to happen?
 - How is it planned?
 
-Check it [here](https://excalidraw.com/#json=VAclpcNvHgU1IEO3uDhSk,uvj6jSL_QFl0PyonWV3qmQ) (updated scheme designed by @Andriamanitra ) [here](https://excalidraw.com/#json=tQfSSp-8PB4Y3HzhL_KBz,BspiuHm0JIADr2ApU0XRDQ) or join our [discord](https://discord.gg/k4hMTjcz3g).
+Check it [start design](https://excalidraw.com/#json=VAclpcNvHgU1IEO3uDhSk,uvj6jSL_QFl0PyonWV3qmQ) (updated scheme designed by @Andriamanitra ), [game room manger design](https://excalidraw.com/#json=tQfSSp-8PB4Y3HzhL_KBz,BspiuHm0JIADr2ApU0XRDQ) or join our [discord](https://discord.gg/k4hMTjcz3g).
 
 # Setup
 ### required .env variables
