@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 
+from ..submission import piston
+
 from .validator_type import ValidatorType
-from ..game_room.game_language import Language
-from ..game_room import piston
+from ..submission.language import Language
 from pistonapi.exceptions import PistonError
+
 
 @dataclass
 class Validator:
@@ -18,7 +20,8 @@ class Validator:
         version = language.version
         for _ in range(retry_limit):
             try:
-                output: str = piston.execute(lang, version, code, self.input, timeout=100)
+                output: str = piston.execute(
+                    lang, version, code, self.input, timeout=100)
                 return (output.rstrip() == self.output.rstrip(), output)
             except PistonError:
                 continue

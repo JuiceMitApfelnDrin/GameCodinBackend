@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 
 from ..database.collection import Collection
 from ..database import db_client
-from ..game_room.game_language import Language
+from .language import Language
 
 from ..utils import asdict
 

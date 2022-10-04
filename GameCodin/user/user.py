@@ -22,15 +22,19 @@ from ..utils import asdict
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
-    user_id: ObjectId
+    _id: ObjectId
     username: str
     email: str
-    user_token: str
+    token: str
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def dict(self) -> dict:
         infos = asdict(self)
-        infos["user_id"] = str(self.user_id)
+        infos["id"] = str(self.id)
         return infos
 
     @classmethod
@@ -39,44 +43,43 @@ class User:
             {
                 "username": username,
                 "email": email,
-                "user_token": uuid4().hex,
+                "token": uuid4().hex,
             }
         )
         user = User.get_by_id(result.inserted_id)
         return user
 
     @classmethod
-    def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
-        if user_id in cls.__current_users:
-            return cls.__current_users[user_id]
+    def get_by_id(cls, id: ObjectId) -> Optional[User]:
+        if id in cls.__current_users:
+            return cls.__current_users[id]
 
-        user_info = cls.__get_user_info_from_db(user_id)
-        if user_info is None:
+        info = cls.__get_info_from_db(id)
+        if info is None:
             return
-        return User.from_dict(user_info)
+        return User.from_dict(info)
 
     @classmethod
-    def __get_user_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": user_id}))
+    def __get_info_from_db(cls, id: ObjectId) -> Optional[dict]:
+        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": id}))
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
-        return cls(ObjectId(infos.get("_id") or infos["user_id"]),
-                   infos["username"], infos["email"], infos["user_token"])
+        return cls(ObjectId(infos.get("_id") or infos["id"]),
+                   infos["username"], infos["email"], infos["token"])
 
     def __post_init__(self):
         self.__ref_count = 0
 
-    @property
     def ref_count(self):
         return self.__ref_count
 
     def acquire(self):
         if not self.__ref_count:
-            self.__current_users[self.user_id] = self
+            self.__current_users[self.id] = self
         self.__ref_count += 1
 
     def release(self):
         self.__ref_count -= 1
         if not self.__ref_count:
-            del self.__current_users[self.user_id]
+            del self.__current_users[self.id]

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..game_room.game_room import GameRoom
 from dataclasses import dataclass, field
 from requests import request
 
@@ -15,14 +16,15 @@ from .session_packets import RecvPacket, SendPacket
 from .session_expections import SessionException
 from .user import User
 
+
 @dataclass
 class Session:
-    timeout:  ClassVar = 10 # secs
+    timeout:  ClassVar = 10  # secs
     __sessions: ClassVar[list[Session]] = []
 
     request: Request
     ws: WebsocketImplProtocol
-    user: User = field(init = False)
+    user: User = field(init=False)
     gameroom: Optional[GameRoom] = None
 
     async def __auth(self):
@@ -33,8 +35,8 @@ class Session:
 
         user = User.get_by_id(user_id)
 
-        if  user is None or\
-            user.user_token != user_token:
+        if user is None or\
+                user.token != user_token:
             return
 
         user.acquire()
@@ -54,9 +56,9 @@ class Session:
     async def send_error(self, error: str, message: str = ""):
         await self.send([
             SendPacket.error,
-            {   
+            {
                 "error": error,
-                "message": message 
+                "message": message
             }
         ])
 
@@ -69,13 +71,16 @@ class Session:
                 try:
                     if packet_id == RecvPacket.join:
                         if self.gameroom is not None:
-                            raise SessionException("Session is already in another gameroom")
+                            raise SessionException(
+                                "Session is already in another gameroom")
                         gameroom_id, = message
                         try:
-                            gameroom = GameRoom.get_active_gameroom(gameroom_id)
+                            gameroom = GameRoom.get_active_gameroom(
+                                gameroom_id)
                         except IndexError:
-                            raise SessionException("Gameroom doesn't exist or finished")
-                        gameroom.add_sesssion(self)
+                            raise SessionException(
+                                "Gameroom doesn't exist or finished")
+                        gameroom.add_session(self)
                         self.gameroom = gameroom
                     else:
                         raise SessionException("Wrong packet id")
@@ -88,10 +93,9 @@ class Session:
             try:
                 if self.gameroom is not None:
                     self.gameroom.remove_session(self)
-            except SessionException: pass
-    
+            except SessionException:
+                pass
+
     def __del__(self):
         self.__sessions.remove(self)
         self.user.release()
-
-from ..game_room.game_room import GameRoom

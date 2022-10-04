@@ -20,7 +20,7 @@ from . import app
 async def users(request: Request):
     args = request.args
     if "id" not in args:
-        return json({"error":"No user_id was provided"})
+        return json({"error":"No id was provided"})
 
     try:
         user = User.get_by_id(ObjectId(args["id"][0]))

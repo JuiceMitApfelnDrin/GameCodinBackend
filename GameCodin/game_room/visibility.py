@@ -2,6 +2,6 @@ from __future__ import annotations
 from enum import Enum
 
 
-class Visibility(Enum):
+class GameRoomVisibility(Enum):
     PUBLIC = 0
     PRIVATE = 1

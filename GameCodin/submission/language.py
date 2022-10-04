@@ -3,8 +3,9 @@ from enum import Enum
 from typing import ClassVar
 from dataclasses import dataclass
 from urllib import response
-from ..utils import static_init
+
 from . import piston
+from ..utils import static_init
 
 
 @static_init
@@ -26,9 +27,9 @@ class Language:
             lang_aliases = lang_infos["aliases"]
             lang_runtime = lang_infos.get("runtime", "")
 
-            if not (type(lang_name)    is str  and
-                    type(lang_version) is str  and
-                    type(lang_runtime) is str  and
+            if not (type(lang_name) is str and
+                    type(lang_version) is str and
+                    type(lang_runtime) is str and
                     type(lang_aliases) is list and
                     all(type(alias) is str
                         for alias in lang_aliases)):
