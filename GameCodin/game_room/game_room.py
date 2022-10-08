@@ -171,7 +171,7 @@ class GameRoom:
         """
         TODO: add docstring
         """
-        # This stops bots from joining, and prevents weird bugs (that CG has).
+        # This stops bots from joining, and prevents weird bugs.
         if user in self.sessions:
             raise SessionException(
                 "Can't join: the user doesn't have any sessions connected to gameroom!")
