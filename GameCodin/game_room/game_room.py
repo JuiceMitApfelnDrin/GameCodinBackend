@@ -39,7 +39,8 @@ class GameRoom:
     players: dict[ObjectId, User]
     submissions: dict[ObjectId, Submission]
 
-    sessions: dict[User, list[Session]] = field(default_factory=dict)
+    # includes both players sessions and spectators
+    sessions: dict[User, set[Session]] = field(default_factory=dict)
 
     @classmethod
     def create(cls, *, creator: User, puzzle: Puzzle, config: GameRoomConfig, start_time: datetime) -> GameRoom:
@@ -142,43 +143,53 @@ class GameRoom:
             "players_ids": list(self.submissions.keys())
         }
 
+    # TODO: allow non players to spectate
     def add_session(self, session: Session):
         """
-        Add session to gameroom
+        Add session to gameroom.
         """
+        self.sessions[session.user].add(session)
+
+    def remove_session(self, session: Session):
+        """
+        Remove session from gameroom.
+        Raises an excpetion if session is not in sessions.
+        """
+        user = session.user
+        self.sessions[user].remove(session)
+
+        if self.sessions[user]: return
+        del self.sessions[user]
+
+        if  self.state is not GameRoomState.WAITING_FOR_PLAYERS or\
+            user.id not in self.players:
+            return
+        self.remove_player(user)
+
+    def add_player(self, user: User):
+        """
+        TODO: add docstring
+        """
+
+        # This stops bots from joining, and prevent weird bugs.
+        if user in self.sessions:
+            raise SessionException("Can't join: session is not in gameroom!")
+
         state = self.state
         visibility = self.config.visibility
 
         if not (state is GameRoomState.WAITING_FOR_PLAYERS or
                 state is GameRoomState.IN_PROGRESS and
                 visibility is GameRoomVisibility.PRIVATE):
-            raise SessionException("Can't join, game already started!")
+            raise SessionException("Can't join: game already started!")
 
-        user = session.user
         self.players[user.id] = user
-        if user not in self.sessions:
-            self.sessions[user] = []
-
-        self.sessions[user].append(session)
-
-    def remove_session(self, session: Session):
-        """
-        Remove session from gameroom
-        """
-        user = session.user
-        if user.id not in self.players:
-            raise SessionException("Can't remove session from Game: User is not in gameroom!")
-
-        sessions = self.sessions[user]
-        if session not in sessions:
-            raise SessionException("Can't remove session from Game: Session is not in gameroom!")
-
-        sessions.remove(session)
-
-        if not sessions and self.state is GameRoomState.WAITING_FOR_PLAYERS:
-            self.players[user.id] = user
+        # TODO: update frontend
 
     def remove_player(self, user: User):
+        """
+        TODO: add docstring
+        """
         if user.id not in self.players:
             raise SessionException("Can't remove player from Game: User is not in gameroom!")
 
@@ -186,7 +197,7 @@ class GameRoom:
             raise SessionException("Can't remove player from Game: Game has already started!")
         
         del self.players[user.id]
-        del self.sessions[user]
+        # TODO: update frontend
 
     def add_submission(self, submission: Submission):
         """
