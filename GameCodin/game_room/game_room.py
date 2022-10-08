@@ -79,7 +79,7 @@ class GameRoom:
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists.
         """
-        info = cast(dict, db_client[Collection.GAME.value].find_one({"_id": id}))
+        info = cast(dict, db_client[Collection.GAME.value].find_one({"_id": gameroom_id}))
 
         creator = User.get_by_id(info["creator_id"])
         puzzle = Puzzle.get_by_id(info["puzzle_id"])

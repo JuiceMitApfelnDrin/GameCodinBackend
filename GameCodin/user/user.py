@@ -40,18 +40,18 @@ class User:
         return user
 
     @classmethod
-    def get_by_id(cls, id: ObjectId) -> Optional[User]:
+    def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
         if id in cls.__current_users:
-            return cls.__current_users[id]
+            return cls.__current_users[user_id]
 
-        info = cls.__get_info_from_db(id)
+        info = cls.__get_info_from_db(user_id)
         if info is None:
             return
         return User.from_dict(info)
 
     @classmethod
-    def __get_info_from_db(cls, id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": id}))
+    def __get_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
+        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": user_id}))
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
