@@ -147,6 +147,8 @@ class GameRoom:
     def add_session(self, session: Session):
         """
         Add session to gameroom.
+        This makes the session recieve updates about the game.
+        NOT BECOMING A PLAYER
         """
         self.sessions[session.user].add(session)
 
@@ -170,10 +172,10 @@ class GameRoom:
         """
         TODO: add docstring
         """
-
-        # This stops bots from joining, and prevent weird bugs.
+        # This stops bots from joining, and prevents weird bugs (that CG has).
         if user in self.sessions:
-            raise SessionException("Can't join: session is not in gameroom!")
+            raise SessionException(
+                "Can't join: the user doesn't have any sessions connected to gameroom!")
 
         state = self.state
         visibility = self.config.visibility
@@ -181,7 +183,8 @@ class GameRoom:
         if not (state is GameRoomState.WAITING_FOR_PLAYERS or
                 state is GameRoomState.IN_PROGRESS and
                 visibility is GameRoomVisibility.PRIVATE):
-            raise SessionException("Can't join: game already started!")
+            raise SessionException(
+                "Can't join: game already started!")
 
         self.players[user.id] = user
         # TODO: update frontend
@@ -191,10 +194,12 @@ class GameRoom:
         TODO: add docstring
         """
         if user.id not in self.players:
-            raise SessionException("Can't remove player from Game: User is not in gameroom!")
+            raise SessionException(
+                "Can't remove player from Game: User is not in gameroom!")
 
         if not self.state is GameRoomState.WAITING_FOR_PLAYERS:
-            raise SessionException("Can't remove player from Game: Game has already started!")
+            raise SessionException(
+                "Can't remove player from Game: Game has already started!")
         
         del self.players[user.id]
         # TODO: update frontend
