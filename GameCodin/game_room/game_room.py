@@ -51,7 +51,7 @@ class GameRoom:
                 "creator_id": creator.id,
                 "puzzle_id": puzzle.puzzle_id,
                 "config": config.as_dict(),
-                "start_time": start_time, #TODO: fix
+                "start_time": start_time.isoformat(),
                 "game_state": GameRoomState.WAITING_FOR_PLAYERS.name,
                 "players_ids": [],
                 "submissions_ids": []
@@ -103,7 +103,7 @@ class GameRoom:
             config = GameRoomConfig.from_dict(info["config"]),
             creator = creator,
             puzzle = puzzle,
-            start_time = datetime(6,6,6), # TODO: fix
+            start_time = datetime.fromisoformat(info["start_time"]),
             state = GameRoomState[info["state"]],
             players = players,
             submissions = submissions
