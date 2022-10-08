@@ -10,8 +10,6 @@ from GameCodin.database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
-from ..utils import asdict
-
 
 # TODO: make username and email unique for each user
 
@@ -27,15 +25,7 @@ class User:
     email: str
     token: str
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def dict(self) -> dict:
-        infos = asdict(self)
-        infos["id"] = str(self.id)
-        return infos
+    __ref_count: int = field(init=False, default=0)
 
     @classmethod
     def create(cls, username, email) -> Optional[User]:
@@ -68,8 +58,17 @@ class User:
         return cls(ObjectId(infos.get("_id") or infos["id"]),
                    infos["username"], infos["email"], infos["token"])
 
-    def __post_init__(self):
-        self.__ref_count = 0
+    @property
+    def id(self):
+        return self._id
+
+    def as_dict(self) -> dict:
+        return {
+            "_id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "token": self.token
+        }
 
     def ref_count(self):
         return self.__ref_count

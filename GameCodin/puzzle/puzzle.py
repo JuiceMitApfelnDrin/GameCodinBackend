@@ -10,8 +10,6 @@ from .puzzle_difficulty import Difficulty
 from bson.objectid import ObjectId
 from .validator import Validator
 
-from ..utils import asdict
-
 
 @dataclass
 class Puzzle:
@@ -55,19 +53,18 @@ class Puzzle:
                    info["validators"],
                    info["puzzle_types"])
 
-    @property
-    def dict(self) -> dict:
-        return asdict(self)
+    def as_dict(self) -> dict:
+        raise NotImplementedError
 
     @classmethod
-    def get_by_id(cls, user_id: ObjectId) -> Optional[Puzzle]:
-        user_info = cls.__get_puzzle_info_from_db(user_id)
+    def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
+        user_info = cls.get_puzzle_info_from_db(puzzle_id)
         if user_info is None:
             return
         return Puzzle.from_dict(user_info)
 
     @classmethod
-    def __get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
+    def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
         return cast(dict, db_client[Collection.PUZZLE.value].find_one({"_id": puzzle_id}))
 
     @classmethod

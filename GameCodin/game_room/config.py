@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 from ..puzzle.puzzle_type import PuzzleType
@@ -20,3 +21,7 @@ class GameRoomConfig:
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, info: dict) -> GameRoomConfig:
+        raise NotImplementedError

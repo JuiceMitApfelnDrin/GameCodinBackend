@@ -27,6 +27,7 @@ class Session:
     user: User = field(init=False)
     gameroom: Optional[GameRoom] = None
 
+    # TODO: remove this
     async def __auth(self):
         packet_id, user_id, user_token = asyncio.run(self.recv())
 
@@ -62,6 +63,16 @@ class Session:
             }
         ])
 
+    def __del__(self):
+        self.__sessions.remove(self)
+        self.user.release()
+
+    
+# TODO: put SessionManager in it's own module
+from ..game_room import GameRoom
+
+class SessionManager(Session):
+    gameroom: Optional[GameRoom]
     async def ws_handler(self):
         # TODO: make each packet handling a seperate function because it's pretty messy!
         await self.__auth()
@@ -70,16 +81,14 @@ class Session:
                 packet_id, *message = await self.recv()
                 try:
                     if packet_id == RecvPacket.join:
-                        if self.gameroom is not None:
-                            raise SessionException(
-                                "Session is already in another gameroom")
+                        if self.gameroom:
+                            self.gameroom.remove_session(self)
+                            self.gameroom = None
                         gameroom_id, = message
-                        try:
-                            gameroom = GameRoom.get_active_gameroom(
-                                gameroom_id)
-                        except IndexError:
+                        gameroom = GameRoom.get_active_gameroom(gameroom_id)
+                        if gameroom is None:
                             raise SessionException(
-                                "Gameroom doesn't exist or finished")
+                                "Can't join game: There is no active gameroom with such id!")
                         gameroom.add_session(self)
                         self.gameroom = gameroom
                     else:
@@ -96,6 +105,3 @@ class Session:
             except SessionException:
                 pass
 
-    def __del__(self):
-        self.__sessions.remove(self)
-        self.user.release()
