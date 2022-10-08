@@ -143,7 +143,6 @@ class GameRoom:
             "players_ids": list(self.submissions.keys())
         }
 
-    # TODO: allow non players to spectate
     def add_session(self, session: Session):
         """
         Add session to gameroom.
