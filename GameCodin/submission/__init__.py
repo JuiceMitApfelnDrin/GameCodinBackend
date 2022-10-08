@@ -1,4 +1,7 @@
-__all__ = ["piston"]
+__all__ = ["piston", "Submission", "Language"]
+
+from .submission import Submission
+from .language import Language
 
 from pistonapi import PistonAPI
 from typing import Final

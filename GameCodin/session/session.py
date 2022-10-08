@@ -12,9 +12,8 @@ from typing import Final, ClassVar, Optional
 
 import json
 
-from .session_packets import RecvPacket, SendPacket
-from .session_expections import SessionException
-from .user import User
+from . import SessionException, SendPacket, RecvPacket
+from ..user import User
 
 
 @dataclass

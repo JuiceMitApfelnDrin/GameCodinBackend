@@ -1,10 +1,11 @@
-__all__ = ["db_client"]
+__all__ = ["db_client", "Collection"]
 
 from email.mime import base
 import os
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from typing import Final
+from .collection import Collection
 
 # TODO:
 # It doesn't make sense to do this in database because its not the only part

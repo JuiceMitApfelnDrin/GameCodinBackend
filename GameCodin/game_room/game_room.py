@@ -4,19 +4,16 @@ from dataclasses import dataclass, field
 from typing import Optional, cast, ClassVar
 from bson.objectid import ObjectId
 
-from ..submission.submission import Submission
-from ..puzzle.puzzle import Puzzle
-
 from . import GameRoomState, GameRoomVisibility,GameRoomConfig
 
-from ..message.message import Message
-from ..message.message_type import MessageType
+from ..submission import Submission
+from ..puzzle import Puzzle
 
-from ..user import Session, User
-from ..user.session_expections import SessionException
+from ..user import User
+from ..session import Session, SessionException
 
-from ..database import db_client
-from ..database.collection import Collection
+from ..database import db_client, Collection
+from ..submission import Submission
 
 # TODO: for version 0.2.0:
 # submitted_at: int => allow users to submit one last time after round ends?
@@ -42,6 +39,15 @@ class GameRoom:
     # includes both players sessions and spectators
     sessions: dict[User, set[Session]] = field(default_factory=dict)
 
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def end_time(self) -> datetime:
+        """Returns the end time """
+        return self.start_time + timedelta(minutes=self.config.duration_minutes)
+
     @classmethod
     def create(cls, *, creator: User, puzzle: Puzzle, config: GameRoomConfig, start_time: datetime) -> GameRoom:
         """
@@ -50,7 +56,7 @@ class GameRoom:
         result = db_client[Collection.GAME.value].insert_one(
             {
                 "creator_id": creator.id,
-                "puzzle_id": puzzle.puzzle_id,
+                "puzzle_id": puzzle.id,
                 "config": config.as_dict(),
                 "start_time": start_time.isoformat(),
                 "game_state": GameRoomState.WAITING_FOR_PLAYERS.name,
@@ -80,8 +86,12 @@ class GameRoom:
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists.
         """
-        info = cast(dict, db_client[Collection.GAME.value].find_one({"_id": gameroom_id}))
+        info = cast(Optional[dict], db_client[Collection.GAME.value].find_one({"_id": gameroom_id}))
+        if info is None: return
+        return cls.from_db_dict(info)
 
+    @classmethod
+    def from_db_dict(cls, info: dict):
         creator = User.get_by_id(info["creator_id"])
         puzzle = Puzzle.get_by_id(info["puzzle_id"])
         assert creator is not None
@@ -95,7 +105,7 @@ class GameRoom:
 
         submissions = {}
         for submission_id in info["submissions_ids"]:
-            submission = User.get_by_id(submission_id)
+            submission = Submission.get_by_id(submission_id)
             assert submission is not None
             submissions[submission_id] = submissions
         
@@ -119,16 +129,7 @@ class GameRoom:
         """
         return cls.__active_gamerooms[gameroom_id]
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def end_time(self) -> datetime:
-        """Returns the end time """
-        return self.start_time + timedelta(minutes=self.config.duration_minutes)
-
-    def as_dict(self) -> dict:
+    def as_db_dict(self) -> dict:
         """
         Return a representation of the game room that can be inserted
         into a MongoDB collection using .insert_one() method.
@@ -137,7 +138,7 @@ class GameRoom:
             "_id": self.id,
             "creator_id": self.creator.id,
             "config": self.config.as_dict(),
-            "puzzle": self.puzzle.puzzle_id,
+            "puzzle": self.puzzle.id,
             "start_time": self.start_time.isoformat(),
             "submissions_ids": list(self.submissions.keys()),
             "players_ids": list(self.submissions.keys())

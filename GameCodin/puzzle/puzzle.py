@@ -2,18 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional, cast
-from ..database import db_client
-from ..database.collection import Collection
+from ..database import db_client,Collection
 
-from ..puzzle.puzzle_type import PuzzleType
-from .puzzle_difficulty import Difficulty
+from . import PuzzleType, PuzzleDifficulty
+
 from bson.objectid import ObjectId
 from .validator import Validator
 
 
 @dataclass
 class Puzzle:
-    puzzle_id: ObjectId
+    _id: ObjectId
     title: str
     statement: str
     constraints: str
@@ -24,7 +23,11 @@ class Puzzle:
     # default difficulty = medium
     # TODO: for version 0.2.0:
     # update difficulty based of percentage of people failing/passing in a game
-    difficulty: Difficulty = Difficulty.MEDIUM
+    difficulty: PuzzleDifficulty = PuzzleDifficulty.MEDIUM
+
+    @property
+    def id(self) -> ObjectId:
+        return self._id
 
     @classmethod
     def create(cls, title, statement, constraints,
