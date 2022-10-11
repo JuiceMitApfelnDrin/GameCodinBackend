@@ -34,22 +34,7 @@ item_6 = User.create(
     "chief@dings.com",
 )
 
-assert item_1 and item_2 and item_3 and item_4 and item_5 and item_6
-
-collection_name.insert_many(
-    [
-        item_1.dict,
-        item_2.dict,
-        item_3.dict,
-        item_4.dict,
-        item_5.dict,
-        item_6.dict,
-    ]
-)
-
 # example puzzle insert stuff, test data
-# collection_name = db_client["puzzle"]
-
 item_1 = Puzzle.create(
     title="FizzBuzz",
     author_id=ObjectId("6333585a0b6e7d94a0c64ce3"),

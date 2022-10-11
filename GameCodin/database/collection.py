@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class Collection(Enum):
-    PUZZLE = "puzzle"
+    PUZZLE = "puzzles"
     USERS = "users"
-    GAME = "game"
-    SUBMISSION = "submission"
+    GAME = "games"
+    SUBMISSION = "submissions"

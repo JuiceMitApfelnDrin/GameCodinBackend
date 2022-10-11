@@ -13,25 +13,38 @@ from . import app
 # And put them in their respective folders for exemple users/user_routing.py etc..
 # Or just put them here, and import all of them to here
 
-# TODO: add errors system similar to that of session_execpetions
-# Or generalize session_execpetion to work here too
+# TODO: add errors system similar to that of session_execeptions
+# Or generalize session_exeception to work here too
+
 
 @app.get('/users')
 async def users(request: Request):
     args = request.args
-    if "id" not in args:
-        return json({"error":"No id was provided"})
 
-    try:
-        user = User.get_by_id(ObjectId(args["id"][0]))
-    except InvalidId:
-        user = None
-        
-    if user is None:
-        return json({"error":"Can't find user"})
+    if "id" in args:
+        try:
+            user = User.get_by_id(ObjectId(args["id"][0]))
+        except InvalidId:
+            user = None
 
-    return json(user.dict)
+        if user is None:
+            return json({"error": "Can't find user"})
 
+        return json(user.dict)
+
+    if "username" in args:
+        try:
+            users = User.get_by_username(str(args["username"][0]))
+        except:
+            users = []
+
+        transformed_users = []
+        for user in users:
+            transformed_users.append(user.dict)
+
+        return json(transformed_users)
+
+    return json({"error": "Not yet implemented"})
 
 # @app.get('/game')
 # async def game(request: Request):
@@ -45,7 +58,7 @@ async def users(request: Request):
     # return json(game.dict)
 
 
-@app.get('/puzzle')
+@app.get('/puzzles')
 async def puzzle(request: Request):
     args = request.args
     if "id" in args:
@@ -54,7 +67,7 @@ async def puzzle(request: Request):
         except InvalidId:
             puzzle = None
         if puzzle is None:
-            return json({"error":"Can't find puzzle"})
+            return json({"error": "Can't find puzzle"})
         return json(puzzle.dict)
     elif "author_id" in args:
         try:
@@ -62,7 +75,7 @@ async def puzzle(request: Request):
             # and return error if not
             puzzles = Puzzle.get_by_author(ObjectId(args["author_id"][0]))
         except InvalidId:
-            return json({"error":"Invalid author_id"})
+            return json({"error": "Invalid author_id"})
         return json([puzzle.dict for puzzle in puzzles])
     else:
-        return json({"error":"No puzzle_id/author_id was provided"})
+        return json({"error": "No puzzle_id/author_id was provided"})

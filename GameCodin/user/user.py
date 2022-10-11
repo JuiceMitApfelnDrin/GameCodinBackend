@@ -18,6 +18,9 @@ from ..utils import asdict
 # TODO: for version 0.2.0:
 # profile: Profile
 
+# TODO: for version 0.2.0:
+# allow options for certain queries e.g.: get_by_username (amount of users returned)
+
 @dataclass
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
@@ -54,19 +57,46 @@ class User:
         if id in cls.__current_users:
             return cls.__current_users[id]
 
-        info = cls.__get_info_from_db(id)
+        info = cls.__get_info_by_id_from_db(id)
         if info is None:
             return
         return User.from_dict(info)
 
     @classmethod
-    def __get_info_from_db(cls, id: ObjectId) -> Optional[dict]:
+    def __get_info_by_id_from_db(cls, id: ObjectId) -> Optional[dict]:
         return cast(dict, db_client[Collection.USERS.value].find_one({"_id": id}))
 
     @classmethod
+    def get_by_username(cls, usernameIncludes: str) -> list[User]:
+        """
+        Retrieves max 5 users that include a certain string in their username from the database
+        then those users are transformed into User objects
+        """
+        # currently I would opt for max 5, can be larger later, alternatively send an option for the size
+
+        pipeline = {
+            "username": {
+                "$regex": usernameIncludes, "$options": 'i'
+            }
+        }
+        users_information = list(db_client[Collection.USERS.value].find(
+            pipeline
+        ).limit(5))
+
+        users = []
+        for user in users_information:
+            users.append(User.from_dict(user))
+
+        return users
+
+    @classmethod
     def from_dict(cls, infos: dict) -> User:
-        return cls(ObjectId(infos.get("_id") or infos["id"]),
-                   infos["username"], infos["email"], infos["token"])
+        return cls(
+            ObjectId(infos.get("_id") or infos["id"]),
+            infos["username"],
+            infos["email"],
+            infos["token"]
+        )
 
     def __post_init__(self):
         self.__ref_count = 0

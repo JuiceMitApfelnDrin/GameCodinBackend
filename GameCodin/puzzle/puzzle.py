@@ -47,24 +47,26 @@ class Puzzle:
 
     @classmethod
     def from_dict(cls, info: dict) -> Puzzle:
-        return cls(ObjectId(info.get("_id") or info["puzzle_id"]),
-                   info["title"],
-                   info["statement"],
-                   info["constraints"],
-                   info["author_id"],
-                   info["validators"],
-                   info["puzzle_types"])
+        return cls(
+            ObjectId(info.get("_id") or info["puzzle_id"]),
+            info["title"],
+            info["statement"],
+            info["constraints"],
+            info["author_id"],
+            info["validators"],
+            info["puzzle_types"]
+        )
 
     @property
     def dict(self) -> dict:
         return asdict(self)
 
     @classmethod
-    def get_by_id(cls, user_id: ObjectId) -> Optional[Puzzle]:
-        user_info = cls.__get_puzzle_info_from_db(user_id)
-        if user_info is None:
+    def get_by_id(cls, id: ObjectId) -> Optional[Puzzle]:
+        puzzle_info = cls.__get_puzzle_info_from_db(id)
+        if puzzle_info is None:
             return
-        return Puzzle.from_dict(user_info)
+        return Puzzle.from_dict(puzzle_info)
 
     @classmethod
     def __get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
@@ -81,6 +83,7 @@ class Puzzle:
         """
         raises an error if there is no puzzles of that type
         """
+
         pipeline = [
             {
                 "$match":
