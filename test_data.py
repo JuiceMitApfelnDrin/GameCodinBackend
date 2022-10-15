@@ -9,29 +9,37 @@ from GameCodin.puzzle.puzzle_type import PuzzleType
 # example users insert stuff, test data
 collection_name = db_client[Collection.USERS.value]
 
-item_1 = User.create(
+User.create(
     "juicemitapfelndrin",
     "juicemitapfelndrin@dings.com"
 )
-item_2 = User.create(
+User.create(
     "Gorn10",
     "Gorn10@dings.com"
 )
-item_3 = User.create(
+User.create(
     "Hydrazer",
     "hydrazer@dings.com"
 )
-item_4 = User.create(
+User.create(
     "jutyve",
     "jutyve@dings.com"
 )
-item_5 = User.create(
+User.create(
     "murat",
     "murat@dings.com"
 )
-item_6 = User.create(
+User.create(
     "chief",
     "chief@dings.com",
+)
+User.create(
+    "muumijumala",
+    "muumijumala@dings.com",
+)
+User.create(
+    "kanawanagasakiyoko",
+    "kanawanagasakiyoko@dings.com",
 )
 
 # example puzzle insert stuff, test data
