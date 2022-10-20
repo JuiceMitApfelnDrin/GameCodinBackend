@@ -5,6 +5,7 @@ from GameCodin.database import db_client
 from GameCodin.database.collection import Collection
 from GameCodin.puzzle.puzzle import Puzzle
 from GameCodin.puzzle.puzzle_type import PuzzleType
+from GameCodin.puzzle import validator
 
 # example users insert stuff, test data
 collection_name = db_client[Collection.USERS.value]
@@ -50,13 +51,16 @@ collection_name.insert_many(
 # example puzzle insert stuff, test data
 # collection_name = db_client["puzzle"]
 
+
 item_1 = Puzzle.create(
     title="FizzBuzz",
     author_id=ObjectId("6333585a0b6e7d94a0c64ce3"),
     statement="Print numbers from 1 to N, but if the number is divisible by F, print \"Fizz\", and if the number is divisible by B print \"Buzz\". If it is divisible by both print \"FizzBuzz\".",
-    constraints=["N lines"],
-    puzzle_types=[PuzzleType.SHORTEST.value,
-                  PuzzleType.FASTEST.value, PuzzleType.REVERSE.value],
+    constraints="N lines",
+    puzzle_types=[PuzzleType.SHORTEST,
+                  PuzzleType.FASTEST, PuzzleType.REVERSE],
+
+    # TODO: change those with validators
     validators=[
         {"input": "7 2 3",
          "output": "1\\nFizz\\nBuzz\\nFizz\\n5\\nFizzBuzz\\n7"},

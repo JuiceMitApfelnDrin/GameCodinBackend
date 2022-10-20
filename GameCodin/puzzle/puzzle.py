@@ -8,7 +8,6 @@ from . import PuzzleType, PuzzleDifficulty, puzzle_collection
 from bson.objectid import ObjectId
 from .validator import Validator
 
-
 @dataclass(eq=False, kw_only=True)
 class Puzzle:
     _id: ObjectId
@@ -16,8 +15,8 @@ class Puzzle:
     statement: str
     constraints: str
     author_id: ObjectId
-    validators: tuple[Validator]
-    puzzle_types: tuple[PuzzleType]
+    validators: list[Validator]
+    puzzle_types: list[PuzzleType]
 
     # default difficulty = medium
     # TODO: for version 0.2.0:
@@ -30,7 +29,7 @@ class Puzzle:
 
     @classmethod
     def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
-                validators: tuple[Validator], puzzle_types: tuple[PuzzleType]) -> Optional[Puzzle]:
+                validators: list[Validator], puzzle_types: list[PuzzleType]) -> Optional[Puzzle]:
 
         result = puzzle_collection.insert_one(
             {
@@ -54,8 +53,8 @@ class Puzzle:
             constraints = info["constraints"],
             author_id = info["author_id"],
             validators = info["validators"],
-            puzzle_types = tuple(PuzzleType(puzzle_type) 
-                for puzzle_type in info["puzzle_types"]))
+            puzzle_types = [PuzzleType(puzzle_type) 
+                for puzzle_type in info["puzzle_types"]])
 
     @classmethod
     def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
