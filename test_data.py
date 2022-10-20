@@ -38,12 +38,12 @@ assert item_1 and item_2 and item_3 and item_4 and item_5 and item_6
 
 collection_name.insert_many(
     [
-        item_1.dict,
-        item_2.dict,
-        item_3.dict,
-        item_4.dict,
-        item_5.dict,
-        item_6.dict,
+        item_1.as_dict(),
+        item_2.as_dict(),
+        item_3.as_dict(),
+        item_4.as_dict(),
+        item_5.as_dict(),
+        item_6.as_dict(),
     ]
 )
 
@@ -65,3 +65,5 @@ item_1 = Puzzle.create(
          "output": "1\\n2\\n3\\n4\\n5\\n6\\n7\\n8\\n9\\n10"}
     ]
 )
+
+

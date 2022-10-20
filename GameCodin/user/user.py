@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from distutils.log import info
-from typing import ClassVar, Optional, cast
+from typing import Any, ClassVar, Optional, cast
 from bson.objectid import ObjectId
 from uuid import uuid4
 
-from GameCodin.database.collection import Collection
+from ..database.collection import Collection
 from .profile import Profile
 from ..database import db_client
 
@@ -16,7 +16,7 @@ from ..database import db_client
 # TODO: for version 0.2.0:
 # profile: Profile
 
-@dataclass
+@dataclass(eq=False, kw_only=True)
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
@@ -55,19 +55,26 @@ class User:
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
-        return cls(ObjectId(infos.get("_id") or infos["id"]),
-                   infos["username"], infos["email"], infos["token"])
+        return cls(
+            _id = ObjectId(infos["_id"]), username = infos["username"],
+            email = infos["email"], token = infos["token"])
 
     @property
     def id(self):
         return self._id
 
-    def as_dict(self) -> dict:
+    def as_dict(self) -> dict[str, Any]:
         return {
-            "_id": self.id,
+            "_id": str(self.id),
             "username": self.username,
             "email": self.email,
             "token": self.token
+        }
+
+    def public_info(self) -> dict[str, Any]:
+        return {
+            "_id": str(self.id),
+            "username": self.username
         }
 
     def ref_count(self):

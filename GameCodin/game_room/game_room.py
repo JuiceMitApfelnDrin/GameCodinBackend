@@ -143,6 +143,33 @@ class GameRoom:
             "submissions_ids": list(self.submissions.keys()),
             "players_ids": list(self.submissions.keys())
         }
+    
+    def as_dict(self) -> dict:
+        """
+        Return a represention of the game room that can be sent
+        to the client.
+        """
+        players = []
+        for player in self.players.values():
+            player_info = player.public_info()
+
+            submission = next((
+                submission for submission in self.submissions.values()
+                if submission.user_id == player.id
+            ), None)
+
+            if submission is not None:
+                player_info["submission"] = submission.public_info()
+
+            players.append(player_info)
+
+        return {
+            "_id": str(self.id),
+            "config": self.config.as_dict(),
+            "puzzle": self.puzzle.id,
+            "start_time": self.start_time.isoformat(),
+            "players": players
+        }
 
     def add_session(self, session: Session):
         """

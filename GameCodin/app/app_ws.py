@@ -1,7 +1,7 @@
 from sanic.server.websockets.impl import WebsocketImplProtocol
 from sanic.request import Request
 from . import app
-from ..user.session import SessionManager
+from ..session.session_manager import SessionManager
 
 app.config.WEBSOCKET_MAX_SIZE = 128
 app.config.WEBSOCKET_PING_INTERVAL = None  # type: ignore

@@ -5,7 +5,7 @@ from ..puzzle.puzzle_type import PuzzleType
 from ..submission.language import Language
 # from puzzle.puzzle_difficulty import Difficulty
 from .visibility import GameRoomVisibility
-from GameCodinBackend.GameCodin.game_room import visibility
+from ..game_room import visibility
 
 # TODO: for version 0.2.0:
 # difficulty: Difficulty = Difficulty.RANDOM

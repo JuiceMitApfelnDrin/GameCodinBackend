@@ -1,9 +1,11 @@
 from sanic import text, json
 from sanic.request import Request
 
-from ..puzzle.puzzle import Puzzle
+from ..game_room import GameRoom
+from ..message import Message, MessageType
+from ..puzzle import Puzzle
+from ..user import User
 
-from ..user.user import User
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
@@ -20,7 +22,7 @@ from . import app
 async def users(request: Request):
     args = request.args
     if "id" not in args:
-        return json({"error":"No id was provided"})
+        return text("No id was provided", status=400)
 
     try:
         user = User.get_by_id(ObjectId(args["id"][0]))
@@ -28,21 +30,25 @@ async def users(request: Request):
         user = None
         
     if user is None:
-        return json({"error":"Can't find user"})
+        return text("Can't find user", status=400)
 
-    return json(user.dict)
+    return json(user.public_info())
 
+@app.get('/game')
+async def game(request: Request):
+    args = request.args
+    if "id" not in args:
+        return text("No game_id was provided", status=400)
 
-# @app.get('/game')
-# async def game(request: Request):
-#     args = request.args
-#     if "id" not in args:
-#         return text("No game_id was provided :(")
+    try:
+        game = GameRoom.get_by_id(ObjectId(args["id"][0]))
+    except InvalidId:
+        game = None
+        
+    if game is None:
+        return text("Can't find user", status=400)
 
-#     # game = GameRoom.get_by_id(ObjectId(args["id"][0]))
-#     # if game is None:
-#     #     return text("Can't find user :(")
-    # return json(game.dict)
+    return json(game.as_dict())
 
 
 @app.get('/puzzle')
@@ -54,15 +60,18 @@ async def puzzle(request: Request):
         except InvalidId:
             puzzle = None
         if puzzle is None:
-            return json({"error":"Can't find puzzle"})
-        return json(puzzle.dict)
+            return text("Can't find puzzle", status=400)
+        # TODO: check if we should send the solution/validators
+        return json(puzzle.as_dict())
+
     elif "author_id" in args:
         try:
             # XXX: we might want to check if author_id is valid here
             # and return error if not
             puzzles = Puzzle.get_by_author(ObjectId(args["author_id"][0]))
         except InvalidId:
-            return json({"error":"Invalid author_id"})
-        return json([puzzle.dict for puzzle in puzzles])
+            return text("Invalid author_id", status=400)
+        return json([puzzle.as_dict() for puzzle in puzzles])
+        
     else:
-        return json({"error":"No puzzle_id/author_id was provided"})
+        return text("No puzzle_id/author_id was provided",status=400)

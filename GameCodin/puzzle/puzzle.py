@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional, cast
-from ..database import db_client,Collection
 
-from . import PuzzleType, PuzzleDifficulty
+from . import PuzzleType, PuzzleDifficulty, puzzle_collection
 
 from bson.objectid import ObjectId
 from .validator import Validator
 
 
-@dataclass
+@dataclass(eq=False, kw_only=True)
 class Puzzle:
     _id: ObjectId
     title: str
@@ -18,7 +17,7 @@ class Puzzle:
     constraints: str
     author_id: ObjectId
     validators: tuple[Validator]
-    puzzle_types: list[PuzzleType]
+    puzzle_types: tuple[PuzzleType]
 
     # default difficulty = medium
     # TODO: for version 0.2.0:
@@ -30,10 +29,10 @@ class Puzzle:
         return self._id
 
     @classmethod
-    def create(cls, title, statement, constraints,
-               author_id, validators, puzzle_types) -> Optional[Puzzle]:
+    def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
+                validators: tuple[Validator], puzzle_types: tuple[PuzzleType]) -> Optional[Puzzle]:
 
-        result = db_client[Collection.PUZZLE.value].insert_one(
+        result = puzzle_collection.insert_one(
             {
                 "title": title,
                 "statement": statement,
@@ -48,16 +47,15 @@ class Puzzle:
 
     @classmethod
     def from_dict(cls, info: dict) -> Puzzle:
-        return cls(ObjectId(info.get("_id") or info["puzzle_id"]),
-                   info["title"],
-                   info["statement"],
-                   info["constraints"],
-                   info["author_id"],
-                   info["validators"],
-                   info["puzzle_types"])
-
-    def as_dict(self) -> dict:
-        raise NotImplementedError
+        return cls(
+            _id = ObjectId(info["_id"]),
+            title = info["title"],
+            statement = info["statement"],
+            constraints = info["constraints"],
+            author_id = info["author_id"],
+            validators = info["validators"],
+            puzzle_types = tuple(PuzzleType(puzzle_type) 
+                for puzzle_type in info["puzzle_types"]))
 
     @classmethod
     def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
@@ -68,11 +66,11 @@ class Puzzle:
 
     @classmethod
     def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.PUZZLE.value].find_one({"_id": puzzle_id}))
+        return cast(dict, puzzle_collection.find_one({"_id": puzzle_id}))
 
     @classmethod
     def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle]:
-        cursor = db_client[Collection.PUZZLE.value].find(
+        cursor = puzzle_collection.find(
             {"author_id": author_id})
         return tuple(map(Puzzle.from_dict, cursor))
 
@@ -96,5 +94,21 @@ class Puzzle:
                 }
             },
         ]
-        cursor = db_client[Collection.PUZZLE.value].aggregate(pipeline)
+        cursor = puzzle_collection.aggregate(pipeline)
         return Puzzle.from_dict(cursor.next())
+
+    def as_dict(self) -> dict:
+        """
+        Return a represention of the game room that can be sent
+        to the client.
+        """
+
+        # TODO: add validators
+        return {
+            "_id": self.id,
+            "title": self.title,
+            "statement": self.statement,
+            "constraints": self.constraints,
+            "author_id": self.author_id,
+            "puzzle_types": [puzzle_type.name for puzzle_type in self.puzzle_types]
+        }

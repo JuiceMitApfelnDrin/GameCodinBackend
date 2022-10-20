@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from time import time
-from typing import Optional, cast, Final
+from typing import Any, Optional, cast, Final
 from bson.objectid import ObjectId
 
 from .language import Language
@@ -78,13 +78,22 @@ class Submission:
             datetime.fromisoformat(info["submitted_at"])
         )
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, Any]:
         return {
-            "_id": self._id,
+            "_id": str(self._id),
             "puzzle_id": self.puzzle_id,
             "user_id": self.user_id,
             "code": self.code,
-            "language": self.language,
+            "language": self.language.name,
+            "submitted_at": self.submitted_at
+        }
+
+    def public_info(self) -> dict[str,Any]:
+        return {
+            "_id": str(self._id),
+            "puzzle_id": self.puzzle_id,
+            "user_id": self.user_id,
+            "language": self.language.name,
             "submitted_at": self.submitted_at
         }
 
