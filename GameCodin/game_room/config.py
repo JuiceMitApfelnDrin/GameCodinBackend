@@ -39,5 +39,3 @@ class GameRoomConfig:
             "duration_minutes": self.duration_minutes,
             "visiblitity": self.visibility.name
         }
-
-    
