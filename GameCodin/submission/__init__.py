@@ -1,6 +1,5 @@
 __all__ = ["piston", "Submission", "Language", "submissions_collection"]
 
-
 from pistonapi import PistonAPI
 from typing import Final
 
