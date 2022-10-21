@@ -1,14 +1,11 @@
-__all__ = ["db_client", "Collection"]
+__all__ = ["db_client"]
 
 from ..env import load_dotenv
-load_dotenv()
 
-import os
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from typing import Final
-from .collection import Collection
 
 database_name: Final  = "GameCodin"
-connection_string: Final = os.environ['DATABASE_CONNECTION_STRING']
+connection_string: Final = load_dotenv()['DATABASE_CONNECTION_STRING']
 db_client: Final = MongoClient(connection_string, server_api=ServerApi('1'))[database_name]

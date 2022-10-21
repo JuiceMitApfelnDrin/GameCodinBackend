@@ -7,9 +7,7 @@ from typing import Any, Optional, cast, Final
 from bson.objectid import ObjectId
 
 from .language import Language
-
-from ..database.collection import Collection
-from ..database import db_client
+from . import submissions_collection
 
 @dataclass
 class Submission:
@@ -45,7 +43,7 @@ class Submission:
     @classmethod
     def create(cls, user_id, puzzle_id, language: Language, code) -> Optional[Submission]:
         timestamp = datetime.now().isoformat()
-        result = db_client[Collection.SUBMISSION.value].insert_one(
+        result = submissions_collection.insert_one(
             {
                 "user_id": user_id,
                 "puzzle_id": puzzle_id,
@@ -63,7 +61,7 @@ class Submission:
 
     @classmethod
     def get_from_db_by_id(cls, submission_id: ObjectId) -> Optional[Submission]:
-        info = cast(Optional[dict], db_client[Collection.SUBMISSION.value].find_one({"_id": submission_id}))
+        info = cast(Optional[dict], submissions_collection.find_one({"_id": submission_id}))
         if info is None: return
         return cls.get_from_db_dict(info)
 

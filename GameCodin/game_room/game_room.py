@@ -5,6 +5,7 @@ from typing import Optional, cast, ClassVar
 from bson.objectid import ObjectId
 
 from . import GameRoomState, GameRoomVisibility,GameRoomConfig
+from . import games_collection
 
 from ..submission import Submission
 from ..puzzle import Puzzle
@@ -12,8 +13,6 @@ from ..puzzle import Puzzle
 from ..user import User
 from ..session import Session, SessionException
 
-from ..database import db_client, Collection
-from ..submission import Submission
 
 # TODO: for version 0.2.0:
 # submitted_at: int => allow users to submit one last time after round ends?
@@ -53,7 +52,7 @@ class GameRoom:
         """
         Creates a new gameroom and store it in db. 
         """
-        result = db_client[Collection.GAME.value].insert_one(
+        result = games_collection.insert_one(
             {
                 "creator_id": creator.id,
                 "puzzle_id": puzzle.id,
@@ -86,7 +85,7 @@ class GameRoom:
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists.
         """
-        info = cast(Optional[dict], db_client[Collection.GAME.value].find_one({"_id": gameroom_id}))
+        info = cast(Optional[dict], games_collection.find_one({"_id": gameroom_id}))
         if info is None: return
         return cls.from_db_dict(info)
 

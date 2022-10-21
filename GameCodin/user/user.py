@@ -6,10 +6,8 @@ from typing import Any, ClassVar, Optional, cast
 from bson.objectid import ObjectId
 from uuid import uuid4
 
-from ..database.collection import Collection
 from .profile import Profile
-from ..database import db_client
-
+from . import users_collection
 
 # TODO: make username and email unique for each user
 
@@ -23,16 +21,18 @@ class User:
     _id: ObjectId
     username: str
     email: str
+    password: str
     token: str
 
     __ref_count: int = field(init=False, default=0)
 
     @classmethod
-    def create(cls, username, email) -> Optional[User]:
-        result = db_client[Collection.USERS.value].insert_one(
+    def create(cls, username: str, email: str, password: str) -> Optional[User]:
+        result = users_collection.insert_one(
             {
                 "username": username,
                 "email": email,
+                "password": password,
                 "token": uuid4().hex,
             }
         )
@@ -51,13 +51,13 @@ class User:
 
     @classmethod
     def __get_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": user_id}))
+        return cast(dict, users_collection.find_one({"_id": user_id}))
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
         return cls(
             _id = ObjectId(infos["_id"]), username = infos["username"],
-            email = infos["email"], token = infos["token"])
+            password = infos["password"], email = infos["email"], token = infos["token"])
 
     @property
     def id(self):
@@ -68,6 +68,7 @@ class User:
             "_id": str(self.id),
             "username": self.username,
             "email": self.email,
+            "password": self.password,
             "token": self.token
         }
 

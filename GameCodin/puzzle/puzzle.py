@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, cast
 
-from . import PuzzleType, PuzzleDifficulty, puzzle_collection
+from . import PuzzleType, PuzzleDifficulty, puzzles_collection
 
 from bson.objectid import ObjectId
 from .validator import Validator
@@ -31,7 +31,7 @@ class Puzzle:
     def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
                 validators: list[Validator], puzzle_types: list[PuzzleType]) -> Optional[Puzzle]:
 
-        result = puzzle_collection.insert_one(
+        result = puzzles_collection.insert_one(
             {
                 "title": title,
                 "statement": statement,
@@ -65,11 +65,11 @@ class Puzzle:
 
     @classmethod
     def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
-        return cast(dict, puzzle_collection.find_one({"_id": puzzle_id}))
+        return cast(dict, puzzles_collection.find_one({"_id": puzzle_id}))
 
     @classmethod
     def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle]:
-        cursor = puzzle_collection.find(
+        cursor = puzzles_collection.find(
             {"author_id": author_id})
         return tuple(map(Puzzle.from_dict, cursor))
 
@@ -93,7 +93,7 @@ class Puzzle:
                 }
             },
         ]
-        cursor = puzzle_collection.aggregate(pipeline)
+        cursor = puzzles_collection.aggregate(pipeline)
         return Puzzle.from_dict(cursor.next())
 
     def as_dict(self) -> dict:
