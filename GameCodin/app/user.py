@@ -38,7 +38,7 @@ async def users(request: Request):
 
         return json(transformed_users)
 
-    return json({"error": "Not yet implemented"})
+    return text("Not yet implemented", status=400)
 
 
 # WIP! Didn't test this at all!
