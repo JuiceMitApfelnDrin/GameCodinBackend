@@ -13,7 +13,7 @@ User.create(
     "juicemitapfelndrin@dings.com",
     "passw"
 )
-puzzleAuthor, _ = User.create(
+puzzle_author, _ = User.create(
     "Gorn10",
     "Gorn10@dings.com",
     "passw"
