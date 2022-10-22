@@ -1,43 +1,59 @@
 from __future__ import annotations
+from typing import Any, ClassVar, Optional, cast
 
 from dataclasses import dataclass, field
-from distutils.log import info
-from typing import Any, ClassVar, Optional, cast
 from bson.objectid import ObjectId
-from uuid import uuid4
 
 from .profile import Profile
 from . import users_collection
 
-# TODO: make username and email unique for each user
+from bcrypt import gensalt, hashpw, checkpw
+from base64 import b64encode, b64decode
+
 
 # TODO: for version 0.2.0:
 # profile: Profile
+
+# XXX: Password/token stuff + User.create are WIP! Didn't test them!
 
 @dataclass(eq=False, kw_only=True)
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     _id: ObjectId
-    username: str
+    nickname: str
     email: str
-    password: str
-    token: str
+    password: bytes
+    token: bytes
 
     __ref_count: int = field(init=False, default=0)
 
     @classmethod
-    def create(cls, username: str, email: str, password: str) -> Optional[User]:
+    def create(cls, nickname: str, email: str, password: str) -> tuple[User,bytes]:
+        """
+        WIP! Didn't test this
+        returns user, token
+        """
+        user = User(
+            _id = ObjectId(),
+            nickname = nickname,
+            email = email,
+            password = b"",
+            token = b"")
+
+        token = user.set_password(password)
+
         result = users_collection.insert_one(
             {
-                "username": username,
-                "email": email,
-                "password": password,
-                "token": uuid4().hex,
+                "nickname": user.nickname,
+                "email": user.email,
+                "password": user.password,
+                "token": user.token
             }
         )
-        user = User.get_by_id(result.inserted_id)
-        return user
+        user._id = result.inserted_id
+
+        return user, token
 
     @classmethod
     def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
@@ -56,17 +72,33 @@ class User:
     @classmethod
     def from_dict(cls, infos: dict) -> User:
         return cls(
-            _id = ObjectId(infos["_id"]), username = infos["username"],
+            _id = ObjectId(infos["_id"]), nickname = infos["nickname"],
             password = infos["password"], email = infos["email"], token = infos["token"])
 
     @property
     def id(self):
         return self._id
+    
+    def set_password(self, password: str) -> bytes:
+        """
+        returns a new token
+        """
+        password_utf8 = password.encode("utf-8")
+        self.password = hashpw(password_utf8, gensalt())
+        new_token = hashpw(password_utf8, gensalt())
+        self.token = hashpw(password_utf8, gensalt())
+        return b64encode(new_token)
+
+    def verify_password(self, password: str) -> bool:
+        return checkpw(password.encode("utf-8"), self.password)
+
+    def verify_token(self, token: str) -> bool:
+        return checkpw(b64decode(token), self.token)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "_id": str(self.id),
-            "username": self.username,
+            "nickname": self.nickname,
             "email": self.email,
             "password": self.password,
             "token": self.token
@@ -75,7 +107,7 @@ class User:
     def public_info(self) -> dict[str, Any]:
         return {
             "_id": str(self.id),
-            "username": self.username
+            "nickname": self.nickname
         }
 
     def ref_count(self):

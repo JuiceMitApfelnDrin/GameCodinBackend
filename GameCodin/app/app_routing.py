@@ -10,29 +10,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
 from . import app
-
-# XXX: maybe we should seperate this to differnt modules
-# And put them in their respective folders for exemple users/user_routing.py etc..
-# Or just put them here, and import all of them to here
-
-# TODO: add errors system similar to that of session_execpetions
-# Or generalize session_execpetion to work here too
-
-@app.get('/users')
-async def users(request: Request):
-    args = request.args
-    if "id" not in args:
-        return text("No id was provided", status=400)
-
-    try:
-        user = User.get_by_id(ObjectId(args["id"][0]))
-    except InvalidId:
-        user = None
-        
-    if user is None:
-        return text("Can't find user", status=400)
-
-    return json(user.public_info())
+from . import users
 
 @app.get('/game')
 async def game(request: Request):
