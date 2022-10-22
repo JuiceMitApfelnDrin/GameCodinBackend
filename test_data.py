@@ -52,7 +52,7 @@ User.create(
 # example puzzle insert stuff, test data
 Puzzle.create(
     title="FizzBuzz",
-    author_id=ObjectId(puzzleAuthor.id),
+    author_id=ObjectId(puzzle_author.id),
     statement="Print numbers from 1 to N, but if the number is divisible by F, print \"Fizz\", and if the number is divisible by B print \"Buzz\". If it is divisible by both print \"FizzBuzz\".",
     constraints="N lines",
     puzzle_types=[PuzzleType.SHORTEST,
