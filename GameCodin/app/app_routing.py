@@ -10,7 +10,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
 from . import app
-from . import users
+from . import user
 
 @app.get('/game')
 async def game(request: Request):

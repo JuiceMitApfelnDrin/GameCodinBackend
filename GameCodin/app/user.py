@@ -1,3 +1,4 @@
+from typing import Any
 from sanic import text, json, response
 from sanic.request import Request
 
@@ -29,7 +30,7 @@ async def users(request: Request):
 # WIP! Didn't test this at all!
 @app.get('/register')
 async def register(request: Request):
-    content = request.json
+    content:  dict[str,Any] = request.json
     nickname: str = content["nickname"]
     password: str = content["password"]
     email:    str = content["email"]
