@@ -34,17 +34,6 @@ async def game(request: Request):
 # TODO: add errors system similar to that of session_execeptions
 # Or generalize session_exeception to work here too
 
-# @app.get('/game')
-# async def game(request: Request):
-#     args = request.args
-#     if "id" not in args:
-#         return text("No game_id was provided :(")
-
-#     # game = GameRoom.get_by_id(ObjectId(args["id"][0]))
-#     # if game is None:
-#     #     return text("Can't find user :(")
-    # return json(game.dict)
-
 
 @app.get('/puzzles')
 async def puzzle(request: Request):
