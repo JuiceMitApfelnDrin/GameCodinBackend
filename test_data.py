@@ -13,7 +13,7 @@ User.create(
     "juicemitapfelndrin@dings.com",
     "passw"
 )
-User.create(
+puzzleAuthor, _ = User.create(
     "Gorn10",
     "Gorn10@dings.com",
     "passw"
@@ -52,7 +52,7 @@ User.create(
 # example puzzle insert stuff, test data
 Puzzle.create(
     title="FizzBuzz",
-    author_id=ObjectId("6333585a0b6e7d94a0c64ce3"),
+    author_id=ObjectId(puzzleAuthor.id),
     statement="Print numbers from 1 to N, but if the number is divisible by F, print \"Fizz\", and if the number is divisible by B print \"Buzz\". If it is divisible by both print \"FizzBuzz\".",
     constraints="N lines",
     puzzle_types=[PuzzleType.SHORTEST,
