@@ -4,7 +4,7 @@ from enum import Enum
 
 class MessageType(Enum):
     # user
-    USER_SUBMITTED = "USER_SUBMITTED"
+    USER_SUBMITTED  = "USER_SUBMITTED"
 
     # clash
     CLASH_STARTED = "GAME_STARTED"

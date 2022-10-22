@@ -2,37 +2,36 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional, cast
-from ..database import db_client
-from ..database.collection import Collection
 
-from ..puzzle.puzzle_type import PuzzleType
-from .puzzle_difficulty import Difficulty
+from . import PuzzleType, PuzzleDifficulty, puzzles_collection
+
 from bson.objectid import ObjectId
 from .validator import Validator
 
-from ..utils import asdict
-
-
-@dataclass
+@dataclass(eq=False, kw_only=True)
 class Puzzle:
-    puzzle_id: ObjectId
+    _id: ObjectId
     title: str
     statement: str
     constraints: str
     author_id: ObjectId
-    validators: tuple[Validator]
+    validators: list[Validator]
     puzzle_types: list[PuzzleType]
 
     # default difficulty = medium
     # TODO: for version 0.2.0:
     # update difficulty based of percentage of people failing/passing in a game
-    difficulty: Difficulty = Difficulty.MEDIUM
+    difficulty: PuzzleDifficulty = PuzzleDifficulty.MEDIUM
+
+    @property
+    def id(self) -> ObjectId:
+        return self._id
 
     @classmethod
-    def create(cls, title, statement, constraints,
-               author_id, validators, puzzle_types) -> Optional[Puzzle]:
+    def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
+                validators: list[Validator], puzzle_types: list[PuzzleType]) -> Optional[Puzzle]:
 
-        result = db_client[Collection.PUZZLE.value].insert_one(
+        result = puzzles_collection.insert_one(
             {
                 "title": title,
                 "statement": statement,
@@ -48,33 +47,29 @@ class Puzzle:
     @classmethod
     def from_dict(cls, info: dict) -> Puzzle:
         return cls(
-            ObjectId(info.get("_id") or info["puzzle_id"]),
-            info["title"],
-            info["statement"],
-            info["constraints"],
-            info["author_id"],
-            info["validators"],
-            info["puzzle_types"]
-        )
-
-    @property
-    def dict(self) -> dict:
-        return asdict(self)
+            _id = ObjectId(info["_id"]),
+            title = info["title"],
+            statement = info["statement"],
+            constraints = info["constraints"],
+            author_id = info["author_id"],
+            validators = info["validators"],
+            puzzle_types = [PuzzleType(puzzle_type) 
+                for puzzle_type in info["puzzle_types"]])
 
     @classmethod
-    def get_by_id(cls, id: ObjectId) -> Optional[Puzzle]:
-        puzzle_info = cls.__get_puzzle_info_from_db(id)
+    def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
+        puzzle_info = cls.get_puzzle_info_from_db(puzzle_id)
         if puzzle_info is None:
             return
         return Puzzle.from_dict(puzzle_info)
 
     @classmethod
-    def __get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.PUZZLE.value].find_one({"_id": puzzle_id}))
+    def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
+        return cast(dict, puzzles_collection.find_one({"_id": puzzle_id}))
 
     @classmethod
     def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle]:
-        cursor = db_client[Collection.PUZZLE.value].find(
+        cursor = puzzles_collection.find(
             {"author_id": author_id})
         return tuple(map(Puzzle.from_dict, cursor))
 
@@ -99,5 +94,21 @@ class Puzzle:
                 }
             },
         ]
-        cursor = db_client[Collection.PUZZLE.value].aggregate(pipeline)
+        cursor = puzzles_collection.aggregate(pipeline)
         return Puzzle.from_dict(cursor.next())
+
+    def as_dict(self) -> dict:
+        """
+        Return a represention of the game room that can be sent
+        to the client.
+        """
+
+        # TODO: add validators
+        return {
+            "_id": self.id,
+            "title": self.title,
+            "statement": self.statement,
+            "constraints": self.constraints,
+            "author_id": self.author_id,
+            "puzzle_types": [puzzle_type.name for puzzle_type in self.puzzle_types]
+        }

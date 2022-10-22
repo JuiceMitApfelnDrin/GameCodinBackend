@@ -1,105 +1,139 @@
 from __future__ import annotations
+from typing import Any, ClassVar, Optional, cast
 
 from dataclasses import dataclass, field
-from distutils.log import info
-from typing import ClassVar, Optional, cast
 from bson.objectid import ObjectId
-from uuid import uuid4
 
-from GameCodin.database.collection import Collection
 from .profile import Profile
-from ..database import db_client
+from . import users_collection
 
-from ..utils import asdict
+from bcrypt import gensalt, hashpw, checkpw
+from base64 import b64encode, b64decode
 
-
-# TODO: make username and email unique for each user
 
 # TODO: for version 0.2.0:
 # profile: Profile
-
-# TODO: for version 0.2.0:
 # allow options for certain queries e.g.: get_by_username (amount of users returned)
+
+# XXX: Password/token stuff + User.create are WIP! Didn't test them!
+@dataclass(eq=False, kw_only=True)
 
 @dataclass
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     _id: ObjectId
-    username: str
+    nickname: str
     email: str
-    token: str
+    password: bytes
+    token: bytes
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def dict(self) -> dict:
-        infos = asdict(self)
-        infos["id"] = str(self.id)
-        return infos
+    __ref_count: int = field(init=False, default=0)
 
     @classmethod
-    def create(cls, username, email) -> Optional[User]:
-        result = db_client[Collection.USERS.value].insert_one(
+    def create(cls, nickname: str, email: str, password: str) -> tuple[User,bytes]:
+        """
+        WIP! Didn't test this
+        returns user, token
+        """
+        user = User(
+            _id = ObjectId(),
+            nickname = nickname,
+            email = email,
+            password = b"",
+            token = b"")
+
+        token = user.set_password(password)
+
+        result = users_collection.insert_one(
             {
-                "username": username,
-                "email": email,
-                "token": uuid4().hex,
+                "nickname": user.nickname,
+                "email": user.email,
+                "password": user.password,
+                "token": user.token
             }
         )
-        user = User.get_by_id(result.inserted_id)
-        return user
+        user._id = result.inserted_id
+
+        return user, token
 
     @classmethod
-    def get_by_id(cls, id: ObjectId) -> Optional[User]:
+    def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
         if id in cls.__current_users:
-            return cls.__current_users[id]
+            return cls.__current_users[user_id]
 
-        info = cls.__get_info_by_id_from_db(id)
+        info = cls.__get_info_from_db(user_id)
         if info is None:
             return
         return User.from_dict(info)
 
     @classmethod
-    def __get_info_by_id_from_db(cls, id: ObjectId) -> Optional[dict]:
-        return cast(dict, db_client[Collection.USERS.value].find_one({"_id": id}))
+    def __get_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
+        return cast(dict, users_collection.find_one({"_id": user_id}))
 
-    @classmethod
-    def get_by_username(cls, usernameIncludes: str) -> list[User]:
-        """
-        Retrieves max 5 users that include a certain string in their username from the database
-        then those users are transformed into User objects
-        """
-        # currently I would opt for max 5, can be larger later, alternatively send an option for the size
+    # @classmethod
+    # def get_by_username(cls, usernameIncludes: str) -> list[User]:
+    #     """
+    #     Retrieves max 5 users that include a certain string in their username from the database
+    #     then those users are transformed into User objects
+    #     """
+    #     # currently I would opt for max 5, can be larger later, alternatively send an option for the size
 
-        pipeline = {
-            "username": {
-                "$regex": usernameIncludes, "$options": 'i'
-            }
-        }
-        users_information = list(db_client[Collection.USERS.value].find(
-            pipeline
-        ).limit(5))
+    #     pipeline = {
+    #         "username": {
+    #             "$regex": usernameIncludes, "$options": 'i'
+    #         }
+    #     }
+    #     users_information = list(db_client[Collection.USERS.value].find(
+    #         pipeline
+    #     ).limit(5))
 
-        users = []
-        for user in users_information:
-            users.append(User.from_dict(user))
+    #     users = []
+    #     for user in users_information:
+    #         users.append(User.from_dict(user))
 
-        return users
+    #     return users
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
         return cls(
-            ObjectId(infos.get("_id") or infos["id"]),
-            infos["username"],
-            infos["email"],
-            infos["token"]
-        )
+            _id = ObjectId(infos["_id"]), nickname = infos["nickname"],
+            password = infos["password"], email = infos["email"], token = infos["token"])
 
-    def __post_init__(self):
-        self.__ref_count = 0
+    @property
+    def id(self):
+        return self._id
+    
+    def set_password(self, password: str) -> bytes:
+        """
+        returns a new token
+        """
+        password_utf8 = password.encode("utf-8")
+        self.password = hashpw(password_utf8, gensalt())
+        new_token = hashpw(password_utf8, gensalt())
+        self.token = hashpw(password_utf8, gensalt())
+        return b64encode(new_token)
+
+    def verify_password(self, password: str) -> bool:
+        return checkpw(password.encode("utf-8"), self.password)
+
+    def verify_token(self, token: str) -> bool:
+        return checkpw(b64decode(token), self.token)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "_id": str(self.id),
+            "nickname": self.nickname,
+            "email": self.email,
+            "password": self.password,
+            "token": self.token
+        }
+
+    def public_info(self) -> dict[str, Any]:
+        return {
+            "_id": str(self.id),
+            "nickname": self.nickname
+        }
 
     def ref_count(self):
         return self.__ref_count
