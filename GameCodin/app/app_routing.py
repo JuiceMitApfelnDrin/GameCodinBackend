@@ -27,9 +27,26 @@ async def game(request: Request):
         return text("Can't find user", status=400)
 
     return json(game.as_dict())
+# XXX: maybe we should seperate this to differnt modules
+# And put them in their respective folders for exemple users/user_routing.py etc..
+# Or just put them here, and import all of them to here
+
+# TODO: add errors system similar to that of session_execeptions
+# Or generalize session_exeception to work here too
+
+# @app.get('/game')
+# async def game(request: Request):
+#     args = request.args
+#     if "id" not in args:
+#         return text("No game_id was provided :(")
+
+#     # game = GameRoom.get_by_id(ObjectId(args["id"][0]))
+#     # if game is None:
+#     #     return text("Can't find user :(")
+    # return json(game.dict)
 
 
-@app.get('/puzzle')
+@app.get('/puzzles')
 async def puzzle(request: Request):
     args = request.args
     if "id" in args:

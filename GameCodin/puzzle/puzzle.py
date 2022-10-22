@@ -58,10 +58,10 @@ class Puzzle:
 
     @classmethod
     def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
-        user_info = cls.get_puzzle_info_from_db(puzzle_id)
-        if user_info is None:
+        puzzle_info = cls.get_puzzle_info_from_db(puzzle_id)
+        if puzzle_info is None:
             return
-        return Puzzle.from_dict(user_info)
+        return Puzzle.from_dict(puzzle_info)
 
     @classmethod
     def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
@@ -78,6 +78,7 @@ class Puzzle:
         """
         raises an error if there is no puzzles of that type
         """
+
         pipeline = [
             {
                 "$match":

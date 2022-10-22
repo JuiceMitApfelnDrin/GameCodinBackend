@@ -13,10 +13,12 @@ from base64 import b64encode, b64decode
 
 # TODO: for version 0.2.0:
 # profile: Profile
+# allow options for certain queries e.g.: get_by_username (amount of users returned)
 
 # XXX: Password/token stuff + User.create are WIP! Didn't test them!
-
 @dataclass(eq=False, kw_only=True)
+
+@dataclass
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
@@ -68,6 +70,29 @@ class User:
     @classmethod
     def __get_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
         return cast(dict, users_collection.find_one({"_id": user_id}))
+
+    # @classmethod
+    # def get_by_username(cls, usernameIncludes: str) -> list[User]:
+    #     """
+    #     Retrieves max 5 users that include a certain string in their username from the database
+    #     then those users are transformed into User objects
+    #     """
+    #     # currently I would opt for max 5, can be larger later, alternatively send an option for the size
+
+    #     pipeline = {
+    #         "username": {
+    #             "$regex": usernameIncludes, "$options": 'i'
+    #         }
+    #     }
+    #     users_information = list(db_client[Collection.USERS.value].find(
+    #         pipeline
+    #     ).limit(5))
+
+    #     users = []
+    #     for user in users_information:
+    #         users.append(User.from_dict(user))
+
+    #     return users
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:
