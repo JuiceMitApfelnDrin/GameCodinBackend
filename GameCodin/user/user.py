@@ -13,7 +13,7 @@ from base64 import b64encode, b64decode
 
 # TODO: for version 0.2.0:
 # profile: Profile
-# allow options for certain queries e.g.: get_by_username (amount of users returned)
+# allow options for certain queries e.g.: get_by_nickname (amount of users returned)
 
 # XXX: Password/token stuff + User.create are WIP! Didn't test them!
 @dataclass(eq=False, kw_only=True)
@@ -72,16 +72,16 @@ class User:
         return cast(dict, users_collection.find_one({"_id": user_id}))
 
     @classmethod
-    def get_by_username(cls, usernameIncludes: str) -> list[User]:
+    def get_by_nickname(cls, nicknameIncludes: str) -> list[User]:
         """
-        Retrieves (currently max 5) users that include a certain string in their username from the database
+        Retrieves (currently max 5) users that include a certain string in their nickname from the database
         then those users are transformed into User objects
         """
         # currently I would opt for max 5, can be larger later, alternatively send an option for the size
 
         pipeline = {
-            "username": {
-                "$regex": usernameIncludes, "$options": 'i'
+            "nickname": {
+                "$regex": nicknameIncludes, "$options": 'i'
             }
         }
         users_information = list(users_collection.find(

@@ -26,9 +26,9 @@ async def users(request: Request):
 
         return json(user.public_info())
 
-    if "username" in args:
+    if "nickname" in args:
         try:
-            users = User.get_by_username(str(args["username"][0]))
+            users = User.get_by_nickname(str(args["nickname"][0]))
         except:
             users = []
 
