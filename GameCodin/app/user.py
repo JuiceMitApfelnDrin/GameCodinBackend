@@ -1,14 +1,16 @@
 from typing import Any
+
 from sanic import text, json, response
 from sanic.request import Request
 
-from ..user import User
-
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from pymongo.errors import DuplicateKeyError
+
 from validate_email import validate_email
 from urllib.parse import urlencode
 
+from ..user import User
 from . import app
 
 
@@ -52,7 +54,6 @@ async def register(request: Request):
     if not 8 <= len(password) <= 64:
         return text("Password must be between 8 and 64 characters")
 
-    # TODO: Change check_smtp to True, after getting smtp server!
     if not validate_email(
             email_address=email,
             check_smtp=False):
@@ -63,8 +64,14 @@ async def register(request: Request):
             nickname=nickname,
             email=email,
             password=password)
-    except Exception:
-        # TODO: remove Exception because it's not safe
-        return text("Email or Nickname is taken", status=400)
+    except DuplicateKeyError as duplicate_error:
+        details = duplicate_error.details
+        if details is None:
+            return text("Internal error", status = 400)
+        
+        keys = ', '.join(details["keyPattern"])
+        error_message = keys + f" {('is','are')[len(details)>1]} taken"
+        return text(error_message, status=400)
 
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
+
