@@ -72,7 +72,7 @@ class User:
         return cast(dict, users_collection.find_one({"_id": user_id}))
 
     @classmethod
-    def get_by_nickname(cls, nicknameIncludes: str) -> list[User]:
+    def get_by_substring_in_nickname(cls, nicknameIncludes: str) -> list[User]:
         """
         Retrieves (currently max 5) users that include a certain string in their nickname from the database
         then those users are transformed into User objects
@@ -93,6 +93,24 @@ class User:
             users.append(User.from_dict(user))
 
         return users
+
+    @classmethod
+    def get_by_nickname(cls, nickname: str) -> Optional[User]:
+        info = users_collection.find_one({"nickname": nickname})
+
+        if info is None:
+            return
+
+        return User.from_dict(info)
+
+    @classmethod
+    def get_by_email(cls, email: str) -> Optional[User]:
+        info = users_collection.find_one({"email": email})
+
+        if info is None:
+            return
+
+        return User.from_dict(info)
 
     @classmethod
     def from_dict(cls, infos: dict) -> User:

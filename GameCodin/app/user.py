@@ -28,9 +28,10 @@ async def users(request: Request):
 
         return json(user.public_info())
 
-    if "nickname" in args:
+    if "substringInNickname" in args:
         try:
-            users = User.get_by_nickname(str(args["nickname"][0]))
+            users = User.get_by_substring_in_nickname(
+                str(args["substringInNickname"][0]))
         except:
             users = []
 
@@ -39,6 +40,20 @@ async def users(request: Request):
             transformed_users.append(user.public_info())
 
         return json(transformed_users)
+
+    if "nickname" in args:
+        user = User.get_by_nickname(str(args["nickname"][0]))
+        if user is None:
+            return text(f"User with nickname {args['nickname'][0]} couldn't be found")
+
+        return json(user.public_info())
+
+    if "email" in args:
+        user = User.get_by_email(str(args["email"][0]))
+        if user is None:
+            return text(f"User with email {args['email'][0]} couldn't be found")
+
+        return json(user.public_info())
 
     return text("Not yet implemented", status=400)
 
