@@ -23,5 +23,5 @@ print(Puzzle.get_by_author(author_id=ObjectId("6333585a0b6e7d94a0c64ce3")))
 print("\nUser by id")
 print(User.get_by_id(user_id=ObjectId("6345b74a6708cb008dd170d4")))
 
-print("\nUsers that include X in username")
+print("\nUsers that include X in nickname")
 print(User.get_by_nickname("u"))

@@ -17,7 +17,6 @@ from base64 import b64encode, b64decode
 
 # XXX: Password/token stuff + User.create are WIP! Didn't test them!
 @dataclass(eq=False, kw_only=True)
-
 @dataclass
 class User:
     __current_users: ClassVar[dict[ObjectId, User]] = {}
@@ -31,17 +30,17 @@ class User:
     __ref_count: int = field(init=False, default=0)
 
     @classmethod
-    def create(cls, nickname: str, email: str, password: str) -> tuple[User,bytes]:
+    def create(cls, nickname: str, email: str, password: str) -> tuple[User, bytes]:
         """
         WIP! Didn't test this
         returns user, token
         """
         user = User(
-            _id = ObjectId(),
-            nickname = nickname,
-            email = email,
-            password = b"",
-            token = b"")
+            _id=ObjectId(),
+            nickname=nickname,
+            email=email,
+            password=b"",
+            token=b"")
 
         token = user.set_password(password)
 
@@ -53,6 +52,7 @@ class User:
                 "token": user.token
             }
         )
+
         user._id = result.inserted_id
 
         return user, token
@@ -97,13 +97,13 @@ class User:
     @classmethod
     def from_dict(cls, infos: dict) -> User:
         return cls(
-            _id = ObjectId(infos["_id"]), nickname = infos["nickname"],
-            password = infos["password"], email = infos["email"], token = infos["token"])
+            _id=ObjectId(infos["_id"]), nickname=infos["nickname"],
+            password=infos["password"], email=infos["email"], token=infos["token"])
 
     @property
     def id(self):
         return self._id
-    
+
     def set_password(self, password: str) -> bytes:
         """
         returns a new token

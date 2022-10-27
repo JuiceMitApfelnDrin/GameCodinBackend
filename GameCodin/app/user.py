@@ -44,15 +44,15 @@ async def users(request: Request):
 
 
 # WIP! Didn't test this at all!
-@app.get('/register')
+@app.post('/register')
 async def register(request: Request):
     content:  dict[str, Any] = request.json
     nickname: str = content["nickname"]
     password: str = content["password"]
     email:    str = content["email"]
 
-    if not 8 <= len(password) <= 64:
-        return text("Password must be between 8 and 64 characters")
+    if not 8 <= len(password) <= 256:
+        return text("Password must be between 8 and 256 characters")
 
     if not validate_email(
             email_address=email,
@@ -67,11 +67,11 @@ async def register(request: Request):
     except DuplicateKeyError as duplicate_error:
         details = duplicate_error.details
         if details is None:
-            return text("Internal error", status = 400)
-        
+            return text("Internal error", status=400)
+        print(details)
+
         keys = ', '.join(details["keyPattern"])
         error_message = keys + f" {('is','are')[len(details)>1]} taken"
         return text(error_message, status=400)
 
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
-
