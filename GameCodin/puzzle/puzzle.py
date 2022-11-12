@@ -28,8 +28,8 @@ class Puzzle:
         return self._id
 
     @classmethod
-    def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
-                validators: list[Validator], puzzle_types: list[PuzzleType]) -> Optional[Puzzle]:
+    def create(cls, title: str, statement: str, constraints: str, validators: list[Validator],
+                puzzle_types: list[PuzzleType], author_id: ObjectId) -> Optional[Puzzle]:
 
         transformed_validators = [validator.as_dict() for validator in validators]
 
@@ -40,7 +40,7 @@ class Puzzle:
                 "constraints": constraints,
                 "author_id": author_id,
                 "validators": transformed_validators,
-                "puzzle_types": puzzle_types,
+                "puzzle_types": [puzzle_type.name for puzzle_type in puzzle_types],
             }
         )
 
@@ -55,7 +55,7 @@ class Puzzle:
             constraints = info["constraints"],
             author_id = info["author_id"],
             validators = info["validators"],
-            puzzle_types = [PuzzleType(puzzle_type)
+            puzzle_types = [PuzzleType[puzzle_type]
                 for puzzle_type in info["puzzle_types"]])
 
     @classmethod

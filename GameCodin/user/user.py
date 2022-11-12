@@ -31,7 +31,7 @@ class User:
     __ref_count: int = field(init=False, default=0)
 
     @classmethod
-    def create(cls, nickname: str, email: str, password: str) -> tuple[User, bytes]:
+    def create(cls, nickname: str, email: str, password: str) -> tuple[User, str]:
         """
         WIP! Didn't test this
         returns user, token

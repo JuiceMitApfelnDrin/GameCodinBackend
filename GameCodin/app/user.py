@@ -47,14 +47,7 @@ async def users(request: Request):
 
         return json(user.public_info())
 
-    if "email" in args:
-        user = User.get_by_email(str(args["email"][0]))
-        if user is None:
-            return text(f"User with email {args['email'][0]} couldn't be found")
-
-        return json(user.public_info())
-
-    return text("Not yet implemented", status=400)
+    return text("Invalid request: missing args", status=400)
 
 
 @app.post('/register')
@@ -82,8 +75,14 @@ async def register(request: Request):
         if details is None:
             return text("Internal error", status=400)
 
-        keys = ', '.join(details["keyPattern"])
-        error_message = keys + f" {('is','are')[len(details)>1]} taken"
+        key_pattern = details["keyPattern"]
+        duplicate_keys = ', '.join(key_pattern)
+
+        if len(key_pattern) > 1:
+            error_message = duplicate_keys + " are taken"
+        else:
+            error_message = duplicate_keys + " is taken"
+            
         return text(error_message, status=400)
 
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
