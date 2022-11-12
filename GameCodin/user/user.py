@@ -73,7 +73,7 @@ class User:
         return cast(dict, users_collection.find_one({"_id": user_id}))
 
     @classmethod
-    def get_by_substring_in_nickname(cls, nicknameIncludes: str) -> list[User]:
+    def get_list_by_nickname(cls, nicknameIncludes: str) -> list[User]:
         """
         Retrieves (currently max 5) users that include a certain string in their nickname from the database
         then those users are transformed into User objects

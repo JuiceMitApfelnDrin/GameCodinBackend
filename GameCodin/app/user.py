@@ -27,10 +27,10 @@ async def users(request: Request):
 
         return json(user.public_info())
 
-    if "substringInNickname" in args:
+    if "search_by_nickname" in args:
         try:
-            users = User.get_by_substring_in_nickname(
-                str(args["substringInNickname"][0]))
+            users = User.get_list_by_nickname(
+                str(args["search_by_nickname"][0]))
         except:
             users = []
 
@@ -82,7 +82,7 @@ async def register(request: Request):
             error_message = duplicate_keys + " are taken"
         else:
             error_message = duplicate_keys + " is taken"
-            
+
         return text(error_message, status=400)
 
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
@@ -102,5 +102,5 @@ async def login(request: Request):
     iscorrect, token = user.verify_password(password)
     if not iscorrect:
         return text("Password or Nickname is incorrect", status = 400)
-    
+
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
