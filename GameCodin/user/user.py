@@ -18,7 +18,6 @@ from base64 import b64encode, b64decode
 # XXX: Password/token stuff + User.create are WIP! Didn't test them!
 
 @dataclass(eq=False, kw_only=True)
-@dataclass
 class User:
     __token_salt: Final = b'$2b$12$VQqPaUG9Hel/CUIazvbfv.'
     __current_users: ClassVar[dict[ObjectId, User]] = {}
