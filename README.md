@@ -2,6 +2,7 @@
 
 The (current) goal of this repo is to receive the code from the users, execute it and return the result.
 
+<!--
 # Overview
 
 - Whats planned?
@@ -9,15 +10,11 @@ The (current) goal of this repo is to receive the code from the users, execute i
 - How is it planned?
 
 Check it [start design](https://excalidraw.com/#json=VAclpcNvHgU1IEO3uDhSk,uvj6jSL_QFl0PyonWV3qmQ) (updated scheme designed by @Andriamanitra ), [game room manager design](https://excalidraw.com/#json=tQfSSp-8PB4Y3HzhL_KBz,BspiuHm0JIADr2ApU0XRDQ) or join our [discord](https://discord.gg/k4hMTjcz3g).
-
+-->
 # Setup
 ### required .env variables
 
-Create a .env file, in the GameCodin/env folder with the following values:
-
-```
-DATABASE_CONNECTION_STRING=mongodb_connection_string
-```
+Create a `.env` file, in the GameCodin/environment_variables folder, checkout the `README.m` in there.
 
 
 ### Add test data
