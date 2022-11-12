@@ -89,8 +89,8 @@ async def register(request: Request):
 
 
 # WIP! Didn't test this at all!
-@app.post('/signin')
-async def signin(request: Request):
+@app.post('/login')
+async def login(request: Request):
     content:  dict[str, Any] = request.json
     nickname: str = content["nickname"]
     password: str = content["password"]
