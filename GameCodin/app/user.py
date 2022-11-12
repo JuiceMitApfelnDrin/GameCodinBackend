@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Final
 
 from sanic import text, json, response
 from sanic.request import Request
@@ -12,7 +12,6 @@ from urllib.parse import urlencode
 
 from ..user import User
 from . import app
-
 
 @app.get('/users')
 async def users(request: Request):
@@ -58,7 +57,6 @@ async def users(request: Request):
     return text("Not yet implemented", status=400)
 
 
-# WIP! Didn't test this at all!
 @app.post('/register')
 async def register(request: Request):
     content:  dict[str, Any] = request.json
@@ -83,10 +81,30 @@ async def register(request: Request):
         details = duplicate_error.details
         if details is None:
             return text("Internal error", status=400)
-        print(details)
 
         keys = ', '.join(details["keyPattern"])
         error_message = keys + f" {('is','are')[len(details)>1]} taken"
         return text(error_message, status=400)
 
+    return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
+
+
+# WIP! Didn't test this at all!
+@app.post('/signin')
+async def signin(request: Request):
+    content:  dict[str, Any] = request.json
+    nickname: str = content["nickname"]
+    password: str = content["password"]
+
+    if not 8 <= len(password) <= 256:
+        return text("Password must be between 8 and 256 characters")
+
+    user = User.get_by_nickname(nickname)
+    if user is None:
+        return text("Password or Nickname is incorrect", status = 400)
+
+    valid, token = user.verify_password(password)
+    if not valid:
+        return text("Password or Nickname is incorrect", status = 400)
+    
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})

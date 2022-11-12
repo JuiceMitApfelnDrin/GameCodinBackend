@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, ClassVar, Optional, cast
+from typing import Any, ClassVar, Optional, cast, Final
 
 from dataclasses import dataclass, field
 from bson.objectid import ObjectId
@@ -16,9 +16,11 @@ from base64 import b64encode, b64decode
 # allow options for certain queries e.g.: get_by_nickname (amount of users returned)
 
 # XXX: Password/token stuff + User.create are WIP! Didn't test them!
+
 @dataclass(eq=False, kw_only=True)
 @dataclass
 class User:
+    __token_salt: Final = b'$2b$12$VQqPaUG9Hel/CUIazvbfv.'
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     _id: ObjectId
@@ -59,7 +61,7 @@ class User:
 
     @classmethod
     def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
-        if id in cls.__current_users:
+        if user_id in cls.__current_users:
             return cls.__current_users[user_id]
 
         info = cls.__get_info_from_db(user_id)
@@ -122,18 +124,24 @@ class User:
     def id(self):
         return self._id
 
-    def set_password(self, password: str) -> bytes:
+    def set_password(self, password: str) -> str:
         """
         returns a new token
         """
         password_utf8 = password.encode("utf-8")
         self.password = hashpw(password_utf8, gensalt())
-        new_token = hashpw(password_utf8, gensalt())
+        new_token = hashpw(password_utf8, User.__token_salt)
         self.token = hashpw(password_utf8, gensalt())
-        return b64encode(new_token)
+        return b64encode(new_token).decode()
 
-    def verify_password(self, password: str) -> bool:
-        return checkpw(password.encode("utf-8"), self.password)
+    def verify_password(self, password: str) -> tuple[bool, str]:
+        if not checkpw(password.encode("utf-8"), self.password):
+            return False, ""
+
+        password_utf8 = password.encode("utf-8")
+        token = hashpw(password_utf8, User.__token_salt)
+
+        return True, b64encode(token).decode()
 
     def verify_token(self, token: str) -> bool:
         return checkpw(b64decode(token), self.token)
