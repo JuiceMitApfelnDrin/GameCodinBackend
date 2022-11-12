@@ -96,9 +96,6 @@ async def signin(request: Request):
     nickname: str = content["nickname"]
     password: str = content["password"]
 
-    if not 8 <= len(password) <= 256:
-        return text("Password must be between 8 and 256 characters")
-
     user = User.get_by_nickname(nickname)
     if user is None:
         return text("Password or Nickname is incorrect", status = 400)
