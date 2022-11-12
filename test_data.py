@@ -31,7 +31,7 @@ def create_user(nickname: str, email: str, password: str) -> tuple[User, str] | 
         else:
             error_message = keys + " is taken"
 
-        logging.log(logging.WARN, error_message)        
+        logging.warn(error_message)
 
 def create_puzzle(title: str, statement: str, constraints: str, validators: list[Validator], puzzle_types: list[PuzzleType], author_id: ObjectId) -> Puzzle | None:
     try:
@@ -49,13 +49,13 @@ def create_puzzle(title: str, statement: str, constraints: str, validators: list
             raise TypeError("Can't get duplicate_error details", duplicate_error)
 
         keys = ', '.join(details["keyPattern"])
-        
+
         if len(details["keyPattern"]) > 1:
             error_message = keys + " are taken"
         else:
             error_message = keys + " is taken"
 
-        logging.log(logging.WARN, error_message)        
+        logging.warn(error_message)     
 
 
 create_user(
