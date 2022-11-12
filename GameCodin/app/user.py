@@ -100,8 +100,8 @@ async def signin(request: Request):
     if user is None:
         return text("Password or Nickname is incorrect", status = 400)
 
-    valid, token = user.verify_password(password)
-    if not valid:
+    iscorrect, token = user.verify_password(password)
+    if not iscorrect:
         return text("Password or Nickname is incorrect", status = 400)
     
     return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
