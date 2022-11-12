@@ -27,3 +27,15 @@ class Validator:
                 continue
 
         return (False, "Internal error")
+
+    def as_dict(self) -> dict:
+        """
+        Return a represention of the game room that can be sent
+        to the client.
+        """
+
+        return {
+            "validator_type": self.validator_type.value,
+            "input": self.input,
+            "output": self.output,
+        }

@@ -31,13 +31,15 @@ class Puzzle:
     def create(cls, title: str, statement: str, constraints: str, author_id: ObjectId,
                 validators: list[Validator], puzzle_types: list[PuzzleType]) -> Optional[Puzzle]:
 
+        transformed_validators = [validator.as_dict() for validator in validators]
+
         result = puzzles_collection.insert_one(
             {
                 "title": title,
                 "statement": statement,
                 "constraints": constraints,
                 "author_id": author_id,
-                "validators": validators,
+                "validators": transformed_validators,
                 "puzzle_types": puzzle_types,
             }
         )
@@ -53,7 +55,7 @@ class Puzzle:
             constraints = info["constraints"],
             author_id = info["author_id"],
             validators = info["validators"],
-            puzzle_types = [PuzzleType(puzzle_type) 
+            puzzle_types = [PuzzleType(puzzle_type)
                 for puzzle_type in info["puzzle_types"]])
 
     @classmethod
