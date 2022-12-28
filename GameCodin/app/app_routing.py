@@ -4,7 +4,7 @@ from sanic.request import Request
 from ..game_room import GameRoom
 from ..message import Message, MessageType
 from ..puzzle import Puzzle
-from ..user import User
+from .user.user import User
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId

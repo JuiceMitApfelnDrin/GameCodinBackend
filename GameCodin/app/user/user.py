@@ -1,6 +1,9 @@
 from typing import Any, Final
 
-from sanic import text, json, response
+import re
+
+from sanic import text, json
+from sanic.response import HTTPResponse, redirect
 from sanic.request import Request
 
 from bson.objectid import ObjectId
@@ -10,8 +13,13 @@ from pymongo.errors import DuplicateKeyError
 from validate_email import validate_email
 from urllib.parse import urlencode
 
-from ..user import User
-from . import app
+from ...user import User, UserCreationException
+from .. import app
+
+from ...environment_variables import load_dotenv
+
+frontend_url: Final = load_dotenv()['FRONTEND_URL']
+
 
 @app.get('/users')
 async def users(request: Request):
@@ -57,23 +65,22 @@ async def register(request: Request):
     password: str = content["password"]
     email:    str = content["email"]
 
-    if not 8 <= len(password) <= 256:
-        return text("Password must be between 8 and 256 characters")
-
+    
     if not validate_email(
             email_address=email,
             check_smtp=False):
-        return text("Email is not valid", status=400)
+        return text("Email is not valid", status = 400)
 
     try:
         user, token = User.create(
             nickname=nickname,
             email=email,
             password=password)
+    
     except DuplicateKeyError as duplicate_error:
         details = duplicate_error.details
         if details is None:
-            return text("Internal error", status=400)
+            return text("Internal error", status = 400)
 
         key_pattern = details["keyPattern"]
         duplicate_keys = ', '.join(key_pattern)
@@ -83,9 +90,12 @@ async def register(request: Request):
         else:
             error_message = duplicate_keys + " is taken"
 
-        return text(error_message, status=400)
+        return text(error_message, status = 400)
 
-    return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
+    except UserCreationException as user_creation_exception:
+        return text(str(user_creation_exception), status = 400)
+
+    return HTTPResponse(headers = {"set-cookie": urlencode({"token": token})})
 
 
 # WIP! Didn't test this at all!
@@ -103,4 +113,4 @@ async def login(request: Request):
     if not iscorrect:
         return text("Password or Nickname is incorrect", status = 400)
 
-    return response.redirect(to="/", headers={"set-cookie": urlencode({"token": token})})
+    return HTTPResponse(headers = {"set-cookie": urlencode({"token": token})})

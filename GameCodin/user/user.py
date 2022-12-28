@@ -1,11 +1,13 @@
 from __future__ import annotations
+
+import re
 from typing import Any, ClassVar, Optional, cast, Final
 
 from dataclasses import dataclass, field
 from bson.objectid import ObjectId
 
 from .profile import Profile
-from . import users_collection
+from . import users_collection, UserCreationException
 
 from bcrypt import gensalt, hashpw, checkpw
 from base64 import b64encode, b64decode
@@ -19,7 +21,6 @@ from base64 import b64encode, b64decode
 
 @dataclass(eq=False, kw_only=True)
 class User:
-    __token_salt: Final = b'$2b$12$VQqPaUG9Hel/CUIazvbfv.'
     __current_users: ClassVar[dict[ObjectId, User]] = {}
 
     _id: ObjectId
@@ -36,6 +37,17 @@ class User:
         WIP! Didn't test this
         returns user, token
         """
+
+        if not 8 <= len(password) <= 256:
+            raise UserCreationException("Password must be between 8 and 256 characters")
+
+        if not 3 <= len(nickname) <= 32:
+            raise UserCreationException("Nickname must be between 3 and 32 characters")
+        
+        if re.match(r"^[A-Za-z0-9_.\-]+$", nickname):
+            raise UserCreationException("Nickname allowed characters are A-Z a-z 0-9 _ . -")
+
+
         user = User(
             _id=ObjectId(),
             nickname=nickname,
@@ -129,7 +141,7 @@ class User:
         """
         password_utf8 = password.encode("utf-8")
         self.password = hashpw(password_utf8, gensalt())
-        new_token = hashpw(password_utf8, User.__token_salt)
+        new_token = hashpw(password_utf8, gensalt())
         self.token = hashpw(password_utf8, gensalt())
         return b64encode(new_token).decode()
 
@@ -138,7 +150,7 @@ class User:
             return False, ""
 
         password_utf8 = password.encode("utf-8")
-        token = hashpw(password_utf8, User.__token_salt)
+        token = hashpw(password_utf8, gensalt())
 
         return True, b64encode(token).decode()
 
