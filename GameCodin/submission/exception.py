@@ -1,4 +1,4 @@
-__all__ = ()
+__all__ = ("SubmissionException", )
 
 from ..exceptions import GameCodinException
 
