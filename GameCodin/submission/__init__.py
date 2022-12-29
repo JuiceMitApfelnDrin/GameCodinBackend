@@ -7,4 +7,5 @@ piston: Final = PistonAPI()
 
 from .collection import submissions_collection
 from .language import Language
+from .exception import SubmissionException
 from .submission import Submission

@@ -4,15 +4,18 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from typing import Optional, cast, ClassVar
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 
 from . import GameRoomState, GameRoomVisibility,GameRoomConfig
 from . import games_collection
+from .exception import GameRoomException
 
 from ..submission import Submission
 from ..puzzle import Puzzle
 
 from ..user import User
 from ..session import Session, SessionException
+from ..submission import SubmissionException
 
 
 # TODO: for version 0.2.0:
@@ -22,9 +25,6 @@ from ..session import Session, SessionException
 
 @dataclass(eq=False, kw_only=True)
 class GameRoom:
-    class SubmissionException(Exception):
-        """Exception that gets raised when adding a submission fails"""
-
     __active_gamerooms: ClassVar[dict[ObjectId, GameRoom]]
 
     _id: ObjectId
@@ -71,7 +71,7 @@ class GameRoom:
         return game_room
 
     @classmethod
-    def get_by_id(cls, gameroom_id: ObjectId) -> Optional[GameRoom]:
+    def get_by_id(cls, gameroom_id: ObjectId) -> GameRoom:
         """
         Tries to find a GameRoom object with the given id from memory and db.
         Returns None if no active GameRoom with that id exists.
@@ -79,17 +79,23 @@ class GameRoom:
         game_room = cls.get_active_gameroom(gameroom_id)
         if game_room is not None:
             return game_room
-
+        
         return cls.get_from_db_by_id(gameroom_id)
 
     @classmethod
-    def get_from_db_by_id(cls, gameroom_id: ObjectId) -> Optional[GameRoom]:
+    def get_from_db_by_id(cls, gameroom_id: ObjectId) -> GameRoom:
         """
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists.
         """
-        info = cast(Optional[dict], games_collection.find_one({"_id": gameroom_id}))
-        if info is None: return
+        try:
+            info = cast(Optional[dict], games_collection.find_one({"_id": gameroom_id}))
+        except InvalidId:
+            raise GameRoomException("Invalid gameRoom id")
+
+        if info is None:
+            raise GameRoomException("Can't find GameRoom")
+
         return cls.from_db_dict(info)
 
     @classmethod
@@ -123,12 +129,15 @@ class GameRoom:
         )
 
     @classmethod
-    def get_active_gameroom(cls, gameroom_id: ObjectId) -> Optional[GameRoom]:
+    def get_active_gameroom(cls, gameroom_id: ObjectId) -> GameRoom:
         """
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists
         (it may still exist in the database).
         """
+        if gameroom_id not in cls.__active_gamerooms:
+            raise GameRoomException("Can't find GameRoom")
+
         return cls.__active_gamerooms[gameroom_id]
 
     def as_db_dict(self) -> dict:
@@ -242,10 +251,10 @@ class GameRoom:
         """
         state = self.state
         if state == GameRoomState.WAITING_FOR_PLAYERS:
-            raise GameRoom.SubmissionException(
+            raise SubmissionException(
                 "Can't add submission: Game hasn't started yet!")
         if state == GameRoomState.FINISHED:
-            raise GameRoom.SubmissionException(
+            raise SubmissionException(
                 "Can't add submission: Game is already finalized!")
         self.submissions[submission.id] = submission
 

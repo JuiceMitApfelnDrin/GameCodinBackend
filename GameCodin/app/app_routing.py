@@ -11,6 +11,8 @@ from bson.errors import InvalidId
 
 from . import app
 from . import user
+from . import game_room
+from . import ide
 
 
 @app.get('/puzzles')
