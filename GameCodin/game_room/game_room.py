@@ -17,6 +17,8 @@ from ..session import Session, SessionException
 # TODO: for version 0.2.0:
 # submitted_at: int => allow users to submit one last time after round ends?
 
+# TODO: update to raise exceptions instead of returning None
+
 @dataclass(eq=False, kw_only=True)
 class GameRoom:
     class SubmissionException(Exception):

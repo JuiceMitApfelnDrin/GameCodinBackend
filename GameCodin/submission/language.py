@@ -44,3 +44,15 @@ class Language:
     @classmethod
     def get(cls, name: str):
         return cls.__languages[name]
+
+    @classmethod
+    def all(cls):
+        return tuple(language.as_dict() for language in cls.__languages.values())
+
+    def as_dict(self):
+        return {
+            "name": self.name,
+            "version": self.version,
+            "aliases": self.aliases,
+            "version": self.version
+        }

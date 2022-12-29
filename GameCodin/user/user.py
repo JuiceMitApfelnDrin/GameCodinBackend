@@ -3,11 +3,19 @@ from __future__ import annotations
 import re
 from typing import Any, ClassVar, Optional, cast, Final
 
+from sanic import text, json
+
 from dataclasses import dataclass, field
+
+from bson.errors import InvalidId
+from pymongo.errors import DuplicateKeyError
 from bson.objectid import ObjectId
 
 from .profile import Profile
-from . import users_collection, UserCreationException
+from . import users_collection
+from .exception import UserCreationException, UserFindException, UserAuthException
+
+from ..exceptions import GameCodinException
 
 from bcrypt import gensalt, hashpw, checkpw
 from base64 import b64encode, b64decode
@@ -57,32 +65,64 @@ class User:
 
         token = user.set_password(password)
 
-        result = users_collection.insert_one(
-            {
-                "nickname": user.nickname,
-                "email": user.email,
-                "password": user.password,
-                "token": user.token
-            }
-        )
+        try:
+            result = users_collection.insert_one(
+                {
+                    "nickname": user.nickname,
+                    "email": user.email,
+                    "password": user.password,
+                    "token": user.token
+                }
+            )
+        except DuplicateKeyError as duplicate_error:
+            details = duplicate_error.details
+            if details is None:
+                raise GameCodinException("Internal error")
+
+            key_pattern = details["keyPattern"]
+            duplicate_keys = ', '.join(key_pattern)
+
+            if len(key_pattern) > 1:
+                error_message = duplicate_keys + " are taken"
+            else:
+                error_message = duplicate_keys + " is taken"
+
+            raise UserCreationException(error_message)
 
         user._id = result.inserted_id
 
         return user, token
 
     @classmethod
-    def get_by_id(cls, user_id: ObjectId) -> Optional[User]:
-        if user_id in cls.__current_users:
-            return cls.__current_users[user_id]
+    def get_by_id(cls, user_id: ObjectId) -> User:
+        """
+        Finds the user by it's id!
+        """
+        try:
+            if user_id in cls.__current_users:
+                return cls.__current_users[user_id]
 
-        info = cls.__get_info_from_db(user_id)
-        if info is None:
-            return
-        return User.from_dict(info)
+            info = cls.__get_info_from_db(user_id)
+            if info is None:
+                raise UserFindException("Can't find user")
+
+            return User.from_dict(info)
+
+        except InvalidId:
+            raise UserFindException("Invalid ID")
 
     @classmethod
     def __get_info_from_db(cls, user_id: ObjectId) -> Optional[dict]:
         return cast(dict, users_collection.find_one({"_id": user_id}))
+
+    @classmethod
+    def auth_by_token(cls, user_id: ObjectId, token: str) -> User:
+        user = User.get_by_id(user_id)
+
+        if not user.verify_token(token):
+            raise UserAuthException("Invalid Token")
+            
+        return user
 
     @classmethod
     def get_list_by_nickname(cls, nicknameIncludes: str) -> list[User]:
@@ -108,20 +148,20 @@ class User:
         return users
 
     @classmethod
-    def get_by_nickname(cls, nickname: str) -> Optional[User]:
+    def get_by_nickname(cls, nickname: str) -> User:
         info = users_collection.find_one({"nickname": nickname})
 
         if info is None:
-            return
+            raise UserFindException(f"User with nickname {nickname} couldn't be found")
 
         return User.from_dict(info)
 
     @classmethod
-    def get_by_email(cls, email: str) -> Optional[User]:
+    def get_by_email(cls, email: str) -> User:
         info = users_collection.find_one({"email": email})
 
         if info is None:
-            return
+            raise UserFindException(f"User with email {email} couldn't be found")
 
         return User.from_dict(info)
 
@@ -146,6 +186,9 @@ class User:
         return b64encode(new_token).decode()
 
     def verify_password(self, password: str) -> tuple[bool, str]:
+        """
+        returns (success, token)
+        """
         if not checkpw(password.encode("utf-8"), self.password):
             return False, ""
 
