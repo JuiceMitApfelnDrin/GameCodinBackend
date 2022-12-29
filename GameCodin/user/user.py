@@ -117,6 +117,9 @@ class User:
 
     @classmethod
     def auth_by_token(cls, user_id: ObjectId, token: str) -> User:
+        """
+        Raises either UserFindException or UserAuthException if the authentication fails
+        """
         user = User.get_by_id(user_id)
 
         if not user.verify_token(token):

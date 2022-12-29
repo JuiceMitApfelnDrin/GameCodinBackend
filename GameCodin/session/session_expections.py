@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ..exceptions import GameCodinException
 
-class SessionException(Exception):
+class SessionException(GameCodinException):
     pass

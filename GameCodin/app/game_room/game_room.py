@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sanic import text, json
 from sanic.request import Request
 

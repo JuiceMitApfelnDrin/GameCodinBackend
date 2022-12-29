@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Final
 
 from sanic import text, json
@@ -15,11 +17,6 @@ from .. import app
 from ...user import User
 
 def auth(request: Request):
-    """
-    Raises either UserFindException or UserAuthException
-    If the authentication fails
-    """
-
     # If can't find "token"/ "user_id" it raises an Internal Error
     token: str = request.cookies["token"]
     user_id: str = request.cookies["user_id"]
