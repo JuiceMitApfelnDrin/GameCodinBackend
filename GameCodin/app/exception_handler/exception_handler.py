@@ -13,8 +13,8 @@ from ...exceptions import GameCodinException
 
 
 @app.exception(GameCodinException)
-def gamecoding_error(request: Request, exception: Exception):
-    return text(str(exception), status = 400)
+def gamecoding_error(request: Request, exception: GameCodinException):
+    return text(exception.msg, status = exception.status)
 
 @app.exception(Exception)
 def internal_error(request: Request, exception: Exception):
