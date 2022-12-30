@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, cast
+from typing import Optional, cast, Any
 
 from . import PuzzleType, PuzzleDifficulty, puzzles_collection
+from .exception import PuzzleException, PuzzleFindException
 
 from bson.objectid import ObjectId
 from .validator import Validator
@@ -29,7 +30,7 @@ class Puzzle:
 
     @classmethod
     def create(cls, title: str, statement: str, constraints: str, validators: list[Validator],
-                puzzle_types: list[PuzzleType], author_id: ObjectId) -> Optional[Puzzle]:
+                puzzle_types: list[PuzzleType], author_id: ObjectId) -> Puzzle:
 
         result = puzzles_collection.insert_one(
             {
@@ -57,18 +58,21 @@ class Puzzle:
                 for puzzle_type in info["puzzle_types"]])
 
     @classmethod
-    def get_by_id(cls, puzzle_id: ObjectId) -> Optional[Puzzle]:
+    def get_by_id(cls, puzzle_id: ObjectId) -> Puzzle:
         puzzle_info = cls.get_puzzle_info_from_db(puzzle_id)
-        if puzzle_info is None:
-            return
         return Puzzle.from_dict(puzzle_info)
 
     @classmethod
-    def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> Optional[dict]:
-        return cast(dict, puzzles_collection.find_one({"_id": puzzle_id}))
+    def get_puzzle_info_from_db(cls, puzzle_id: ObjectId) -> dict[str, Any]:
+        info = puzzles_collection.find_one({"_id": puzzle_id})
+        if info is None:
+            raise PuzzleFindException("Can't find puzzle")
+
+        assert type(info) is dict[str, Any]
+        return info
 
     @classmethod
-    def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle]:
+    def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle, ...]:
         cursor = puzzles_collection.find(
             {"author_id": author_id})
         return tuple(map(Puzzle.from_dict, cursor))
@@ -78,7 +82,7 @@ class Puzzle:
         """
         raises an error if there is no puzzles of that type
         """
-
+        # TODO: catch the exception
         pipeline = [
             {
                 "$match":

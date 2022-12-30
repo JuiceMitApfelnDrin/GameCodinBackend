@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
-from typing import Optional, cast, ClassVar
-from bson.objectid import ObjectId
-from bson.errors import InvalidId
 
-from . import GameRoomState, GameRoomVisibility,GameRoomConfig
+from typing import Optional, cast, ClassVar, Any
+from bson.objectid import ObjectId
+
+from . import GameRoomState, GameRoomVisibility, GameRoomConfig
 from . import games_collection
-from .exception import GameRoomException
+from .exception import GameRoomException, GameLaunchException
 
 from ..submission import Submission
 from ..puzzle import Puzzle
@@ -88,32 +88,28 @@ class GameRoom:
         Tries to find a GameRoom object with the given id from memory.
         Returns None if no active GameRoom with that id exists.
         """
-        try:
-            info = cast(Optional[dict], games_collection.find_one({"_id": gameroom_id}))
-        except InvalidId:
-            raise GameRoomException("Invalid gameRoom id")
+        info = games_collection.find_one({"_id": gameroom_id})
 
         if info is None:
             raise GameRoomException("Can't find GameRoom")
 
+        assert type(info) is dict[str, Any]
         return cls.from_db_dict(info)
 
     @classmethod
     def from_db_dict(cls, info: dict):
         creator = User.get_by_id(info["creator_id"])
         puzzle = Puzzle.get_by_id(info["puzzle_id"])
-        assert creator is not None
-        assert puzzle is not None
 
         players = {}
         for player_id in info["players_ids"]:
             player = User.get_by_id(player_id)
-            assert player is not None
             players[player_id] = player
 
         submissions = {}
         for submission_id in info["submissions_ids"]:
             submission = Submission.get_by_id(submission_id)
+            # TODO: remove after updating submission API
             assert submission is not None
             submissions[submission_id] = submissions
         
@@ -140,7 +136,7 @@ class GameRoom:
 
         return cls.__active_gamerooms[gameroom_id]
 
-    def as_db_dict(self) -> dict:
+    def as_db_dict(self) -> dict[str, Any]:
         """
         Return a representation of the game room that can be inserted
         into a MongoDB collection using .insert_one() method.
@@ -155,7 +151,7 @@ class GameRoom:
             "players_ids": list(self.submissions.keys())
         }
     
-    def as_dict(self) -> dict:
+    def as_dict(self) -> dict[str, Any]:
         """
         Return a represention of the game room that can be sent
         to the client.
@@ -186,7 +182,7 @@ class GameRoom:
         """
         Add session to gameroom.
         This makes the session recieve updates about the game.
-        NOT BECOMING A PLAYER
+        NOT JOINING THE GAME ROOM
         """
         self.sessions[session.user].add(session)
 
@@ -201,7 +197,7 @@ class GameRoom:
         if self.sessions[user]: return
         del self.sessions[user]
 
-        if  self.state is not GameRoomState.WAITING_FOR_PLAYERS or\
+        if self.state is not GameRoomState.WAITING_FOR_PLAYERS or\
             user.id not in self.players:
             return
         self.remove_player(user)
@@ -240,7 +236,7 @@ class GameRoom:
                 "Can't remove player from Game: Game has already started!")
         
         del self.players[user.id]
-        # TODO: update frontend
+        # TODO: update frontend through websockets
 
     def add_submission(self, submission: Submission):
         """
@@ -250,10 +246,10 @@ class GameRoom:
         game is not in progress.
         """
         state = self.state
-        if state == GameRoomState.WAITING_FOR_PLAYERS:
+        if state is GameRoomState.WAITING_FOR_PLAYERS:
             raise SubmissionException(
                 "Can't add submission: Game hasn't started yet!")
-        if state == GameRoomState.FINISHED:
+        if state is GameRoomState.FINISHED:
             raise SubmissionException(
                 "Can't add submission: Game is already finalized!")
         self.submissions[submission.id] = submission
@@ -264,7 +260,13 @@ class GameRoom:
         After calling the game room starts accepting submissions.
         Called when the host decides the game has enough players to start.
         """
+        if self.state is not GameRoomState.WAITING_FOR_PLAYERS:
+            raise GameLaunchException("Game is already started!")
+        
+        if self.start_time < datetime.now() + timedelta(seconds = 10):
+            raise GameLaunchException("Game is already starting")
+
         if start_time is None:
-            self.start_time = datetime.now()
+            self.start_time = datetime.now() + timedelta(seconds = 5)
         else:
             self.start_time = start_time

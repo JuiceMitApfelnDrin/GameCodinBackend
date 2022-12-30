@@ -18,42 +18,62 @@ from ...exceptions import GameCodinException
 
 @app.get('/game_info')
 async def game_info(request: Request) -> HTTPResponse:
+    args = request.args
+    if "id" not in args:
+        return text("No game_id was provided", status=400)
+
     try:
-        args = request.args
-        if "id" not in args:
-            return text("No game_id was provided", status=400)
+        game_id = ObjectId(args["id"][0])
+    except InvalidId:
+        raise GameCodinException("Invalid game id!")
 
-        game = GameRoom.get_by_id(ObjectId(args["id"][0]))
-
-        return json(game.as_dict())
-
-    except GameCodinException as exception:
-        return text(str(exception), status = 400)
+    game = GameRoom.get_by_id(game_id)
+    return json(game.as_dict())
 
 
 @app.post('/game_join')
 async def game_join(request: Request) -> HTTPResponse:
+    user = auth(request)
+
     try:
-        user = auth(request)
-
-        game = GameRoom.get_by_id(ObjectId(request.json["game_id"]))
-        game.add_player(user)
+        game_id = ObjectId(request.json["id"])
+    except InvalidId:
+        raise GameCodinException("Invalid game id!")
         
-        return json(game.as_dict())
+    game = GameRoom.get_by_id(game_id)
+    game.add_player(user)
+    
+    return json(game.as_dict())
 
-    except GameCodinException as exception:
-        return text(str(exception), status = 400)
+
+@app.post('/game_start')
+async def game_start(request: Request) -> HTTPResponse:
+    user = auth(request)
+    
+    try:
+        game_id = ObjectId(request.json["game_id"])
+    except InvalidId:
+        raise GameCodinException("Invalid game id!")
+
+    game = GameRoom.get_by_id(game_id)
+    if game.creator is not user:
+        raise GameCodinException("Only the game creator is allowed to start the game!")
+    
+    game.launch_game()
+
+    return HTTPResponse()
 
 
 @app.post('/game_leave')
 async def game_leave(request: Request) -> HTTPResponse:
+    user = auth(request)
+
     try:
-        user = auth(request)
+        game_id = ObjectId(request.json["game_id"])
+    except InvalidId:
+        raise GameCodinException("Invalid game id!")
 
-        game = GameRoom.get_by_id(ObjectId(request.json["game_id"]))
-        game.remove_player(user)
-        
-        return HTTPResponse()
-
-    except GameCodinException as exception:
-        return text(str(exception), status = 400)
+    game = GameRoom.get_by_id(game_id)
+    game.remove_player(user)
+    
+    return HTTPResponse()
