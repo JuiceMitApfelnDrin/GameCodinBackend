@@ -20,7 +20,7 @@ from ...exceptions import GameCodinException
 async def game_info(request: Request) -> HTTPResponse:
     args = request.args
     if "id" not in args:
-        return text("No game_id was provided", status=400)
+        return text("No game id was provided", status=400)
 
     try:
         game_id = ObjectId(args["id"][0])
@@ -51,7 +51,7 @@ async def game_start(request: Request) -> HTTPResponse:
     user = auth(request)
     
     try:
-        game_id = ObjectId(request.json["game_id"])
+        game_id = ObjectId(request.json["id"])
     except InvalidId:
         raise GameCodinException("Invalid game id!")
 
@@ -69,7 +69,7 @@ async def game_leave(request: Request) -> HTTPResponse:
     user = auth(request)
 
     try:
-        game_id = ObjectId(request.json["game_id"])
+        game_id = ObjectId(request.json["id"])
     except InvalidId:
         raise GameCodinException("Invalid game id!")
 
