@@ -14,6 +14,6 @@ from .. import app
 from ...submission.language import Language
 
 
-@app.post('/languages')
+@app.get('/languages')
 async def login(request: Request):
     return json(Language.all())

@@ -19,7 +19,7 @@ from . import game_room
 from . import ide
 
 
-@app.get('/puzzle')
+@app.get('/puzzles')
 async def puzzle(request: Request):
     args = request.args
 
