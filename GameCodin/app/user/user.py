@@ -8,10 +8,8 @@ from sanic.request import Request
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from pymongo.errors import DuplicateKeyError
 
 from validate_email import validate_email
-from urllib.parse import urlencode
 
 from .. import app
 
@@ -67,7 +65,10 @@ async def register(request: Request):
         password=password
     )
 
-    return HTTPResponse(headers = {"set-cookie": urlencode({"token": token})})
+    response = HTTPResponse()
+    response.cookies["token"] = token
+
+    return response
 
 
 # WIP! Didn't test this at all!
@@ -85,4 +86,7 @@ async def login(request: Request):
     if not iscorrect:
         return text("Password or Nickname is incorrect", status = 400)
 
-    return HTTPResponse(headers = {"set-cookie": urlencode({"token": token})})
+    response = HTTPResponse()
+    response.cookies["token"] = token
+
+    return response
