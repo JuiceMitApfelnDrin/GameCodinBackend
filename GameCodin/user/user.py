@@ -1,4 +1,7 @@
+
 from __future__ import annotations
+
+__all__ = ("User", )
 
 import re
 from typing import Any, ClassVar, Optional, cast, Final
@@ -51,7 +54,7 @@ class User:
         if not 3 <= len(nickname) <= 32:
             raise UserCreationException("Nickname must be between 3 and 32 characters")
         
-        if re.match(r"^[A-Za-z0-9_.\-]+$", nickname):
+        if not re.match(r"[A-Za-z0-9_.\-]+$", nickname):
             raise UserCreationException("Nickname allowed characters are A-Z a-z 0-9 _ . -")
 
 
@@ -107,7 +110,7 @@ class User:
         if info is None:
             raise UserFindException("Can't find user")
 
-        assert type(info) is dict[str, Any]
+        info = cast(dict[str, Any], info)
         return User.from_dict(info)
 
     @classmethod

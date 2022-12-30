@@ -93,7 +93,7 @@ class GameRoom:
         if info is None:
             raise GameRoomException("Can't find GameRoom")
 
-        assert type(info) is dict[str, Any]
+        info = cast(dict[str, Any], info)
         return cls.from_db_dict(info)
 
     @classmethod

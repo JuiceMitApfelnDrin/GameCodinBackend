@@ -16,7 +16,11 @@ from ...exceptions import GameCodinException
 def gamecoding_error(request: Request, exception: GameCodinException):
     return text(exception.msg, status = exception.status)
 
+
+# disabled for debugging purposes for now
+# TODO: add an option to enable debugging for both types of exceptions
+"""
 @app.exception(Exception)
 def internal_error(request: Request, exception: Exception):
-    return text("Internal Error", status = 400)
-
+    return text("Internal Error" + str(exception), status = 400)
+"""

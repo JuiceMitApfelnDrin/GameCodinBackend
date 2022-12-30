@@ -1,6 +1,6 @@
-from ..exceptions import GameCodinException
-
 __all__ = ("UserException", "UserCreationException", "UserFindException", "UserAuthException")
+
+from ..exceptions import GameCodinException
 
 class UserException(GameCodinException):
     pass

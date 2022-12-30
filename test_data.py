@@ -10,6 +10,9 @@ from GameCodin.puzzle.validator import Validator
 
 from pymongo.errors import DuplicateKeyError
 
+from GameCodin.user.exception import UserCreationException
+from GameCodin.puzzle.exception import PuzzleException
+
 # example users insert stuff, test data
 
 def create_user(nickname: str, email: str, password: str) -> tuple[User, str] | None:
@@ -19,19 +22,8 @@ def create_user(nickname: str, email: str, password: str) -> tuple[User, str] | 
             email,
             password
         )
-    except DuplicateKeyError as duplicate_error:
-        details = duplicate_error.details
-        if details is None:
-            raise TypeError("Can't get duplicate_error details", duplicate_error)
-
-        keys = ', '.join(details["keyPattern"])
-        
-        if len(details["keyPattern"]) > 1:
-            error_message = keys + " are taken"
-        else:
-            error_message = keys + " is taken"
-
-        logging.warn(error_message)
+    except UserCreationException as exception:
+        logging.warning(str(exception))
 
 def create_puzzle(title: str, statement: str, constraints: str, validators: list[Validator], puzzle_types: list[PuzzleType], author_id: ObjectId) -> Puzzle | None:
     try:
@@ -43,25 +35,14 @@ def create_puzzle(title: str, statement: str, constraints: str, validators: list
             puzzle_types = puzzle_types,
             author_id = author_id
         )
-    except DuplicateKeyError as duplicate_error:
-        details = duplicate_error.details
-        if details is None:
-            raise TypeError("Can't get duplicate_error details", duplicate_error)
-
-        keys = ', '.join(details["keyPattern"])
-
-        if len(details["keyPattern"]) > 1:
-            error_message = keys + " are taken"
-        else:
-            error_message = keys + " is taken"
-
-        logging.warn(error_message)     
+    except PuzzleException as exception:
+        logging.warning(str(exception))   
 
 
 create_user(
     "Gorn10",
     "Gorn10@dings.com",
-    "passw"
+    "password"
 )
 
 puzzle_author = User.get_by_nickname("Gorn10")
@@ -70,37 +51,19 @@ assert puzzle_author is not None
 create_user(
     "Hydrazer",
     "hydrazer@dings.com",
-    "passw"
+    "password"
 )
 
 create_user(
     "jutyve",
     "jutyve@dings.com",
-    "passw"
+    "password"
 )
 
 create_user(
     "murat",
     "murat@dings.com",
-    "passw"
-)
-
-create_user(
-    "chief",
-    "chief@dings.com",
-    "passw"
-)
-
-create_user(
-    "muumijumala",
-    "muumijumala@dings.com",
-    "passw"
-)
-
-create_user(
-    "kanawanagasakiyoko",
-    "kanawanagasakiyoko@dings.com",
-    "passw"
+    "password"
 )
 
 # example puzzle insert stuff, test data

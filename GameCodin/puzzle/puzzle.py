@@ -3,10 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, cast, Any
 
-from . import PuzzleType, PuzzleDifficulty, puzzles_collection
-from .exception import PuzzleException, PuzzleFindException
-
 from bson.objectid import ObjectId
+from pymongo.errors import DuplicateKeyError
+
+from . import PuzzleType, PuzzleDifficulty, puzzles_collection
+from .exception import PuzzleException, PuzzleCreationException, PuzzleFindException
+
 from .validator import Validator
 
 @dataclass(eq=False, kw_only=True)
@@ -32,16 +34,30 @@ class Puzzle:
     def create(cls, title: str, statement: str, constraints: str, validators: list[Validator],
                 puzzle_types: list[PuzzleType], author_id: ObjectId) -> Puzzle:
 
-        result = puzzles_collection.insert_one(
-            {
-                "title": title,
-                "statement": statement,
-                "constraints": constraints,
-                "author_id": author_id,
-                "validators":  [validator.as_dict() for validator in validators],
-                "puzzle_types": [puzzle_type.name for puzzle_type in puzzle_types],
-            }
-        )
+        try:
+            result = puzzles_collection.insert_one(
+                {
+                    "title": title,
+                    "statement": statement,
+                    "constraints": constraints,
+                    "author_id": author_id,
+                    "validators":  [validator.as_dict() for validator in validators],
+                    "puzzle_types": [puzzle_type.name for puzzle_type in puzzle_types],
+                }
+            )
+        except DuplicateKeyError as duplicate_error:
+            details = duplicate_error.details
+            assert details is not None
+
+            key_pattern = details["keyPattern"]
+            duplicate_keys = ', '.join(key_pattern)
+
+            if len(key_pattern) > 1:
+                error_message = duplicate_keys + " are taken"
+            else:
+                error_message = duplicate_keys + " is taken"
+
+            raise PuzzleCreationException(error_message)
 
         return cls.get_by_id(result.inserted_id)
 
@@ -68,8 +84,7 @@ class Puzzle:
         if info is None:
             raise PuzzleFindException("Can't find puzzle")
 
-        assert type(info) is dict[str, Any]
-        return info
+        return cast(dict[str, Any], info)
 
     @classmethod
     def get_by_author(cls, author_id: ObjectId) -> tuple[Puzzle, ...]:
@@ -109,10 +124,10 @@ class Puzzle:
 
         # TODO: add validators
         return {
-            "_id": self.id,
+            "_id": str(self.id),
             "title": self.title,
             "statement": self.statement,
             "constraints": self.constraints,
-            "author_id": self.author_id,
+            "author_id": str(self.author_id),
             "puzzle_types": [puzzle_type.name for puzzle_type in self.puzzle_types]
         }
