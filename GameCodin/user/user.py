@@ -47,6 +47,8 @@ class User:
         WIP! Didn't test this
         returns user, token
         """
+        if nickname in ("Nagato_Uzumaki", "EnderWiggins", "Zima_Blue"):
+            raise UserCreationException("Nickname is banned")
 
         if not 8 <= len(password) <= 256:
             raise UserCreationException("Password must be between 8 and 256 characters")
