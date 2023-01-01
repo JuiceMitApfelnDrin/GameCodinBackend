@@ -9,11 +9,11 @@ from bson.errors import InvalidId
 
 from .. import app
 
-from ...exceptions import GameCodinException
+from ...exceptions import CodeRushException
 
 
-@app.exception(GameCodinException)
-def gamecoding_error(request: Request, exception: GameCodinException):
+@app.exception(CodeRushException)
+def CodeRushg_error(request: Request, exception: CodeRushException):
     return text(exception.msg, status = exception.status)
 
 

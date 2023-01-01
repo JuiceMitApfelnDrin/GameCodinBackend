@@ -1,4 +1,4 @@
-# GameCodinBackend
+# CodeRushBackend
 
 The (current) goal of this repo is to receive the code from the users, execute it and return the result.
 
@@ -14,7 +14,7 @@ Check it [start design](https://excalidraw.com/#json=VAclpcNvHgU1IEO3uDhSk,uvj6j
 # Setup
 ### required .env variables
 
-Create a `.env` file, in the GameCodin/environment_variables folder, checkout the `README.m` in there.
+Create a `.env` file, in the CodeRush/environment_variables folder, checkout the `README.m` in there.
 
 
 ### Add test data
@@ -26,11 +26,24 @@ This will fill your database with test objects (doesn't represent real data => e
 python3 test_data.py
 ```
 
-
 ### How to run it?
 
-Open a terminal and run
+We are using nginx as reverse proxy.
+To make both frontend & backend use the same port.
 
+1- install nginx.
+
+2- set nginx configuration file.
 ```bash
-python3 -m GameCodin
+sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
+```
+
+3- run nginx.
+```bash
+sudo systemctl start nginx.service
+```
+
+4- Run backend server.
+```bash
+python3 -m CodeRush
 ```

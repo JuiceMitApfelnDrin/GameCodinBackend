@@ -1,8 +1,8 @@
 __all__ = ("PuzzleException", )
 
-from ..exceptions import GameCodinException
+from ..exceptions import CodeRushException
 
-class PuzzleException(GameCodinException):
+class PuzzleException(CodeRushException):
     pass
 
 class PuzzleCreationException(PuzzleException):

@@ -1,17 +1,17 @@
 import logging
 from bson.objectid import ObjectId
-from GameCodin.puzzle.validator_type import ValidatorType
+from CodeRush.puzzle.validator_type import ValidatorType
 
-from GameCodin.user.user import User
-from GameCodin.database import db_client
-from GameCodin.puzzle.puzzle import Puzzle
-from GameCodin.puzzle.puzzle_type import PuzzleType
-from GameCodin.puzzle.validator import Validator
+from CodeRush.user.user import User
+from CodeRush.database import db_client
+from CodeRush.puzzle.puzzle import Puzzle
+from CodeRush.puzzle.puzzle_type import PuzzleType
+from CodeRush.puzzle.validator import Validator
 
 from pymongo.errors import DuplicateKeyError
 
-from GameCodin.user.exception import UserCreationException
-from GameCodin.puzzle.exception import PuzzleException
+from CodeRush.user.exception import UserCreationException
+from CodeRush.puzzle.exception import PuzzleException
 
 # example users insert stuff, test data
 

@@ -7,6 +7,6 @@ from typing import Final
 
 from ..environment_variables import load_dotenv
 
-database_name: Final  = "GameCodin"
+database_name: Final  = "CodeRush"
 connection_string: Final = load_dotenv()['DATABASE_CONNECTION_STRING']
 db_client: Final = MongoClient(connection_string, server_api=ServerApi('1'))[database_name]

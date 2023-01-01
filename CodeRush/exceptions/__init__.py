@@ -1,4 +1,4 @@
-class GameCodinException(Exception):
+class CodeRushException(Exception):
     msg: str
     status: int
 
