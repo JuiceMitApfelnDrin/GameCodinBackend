@@ -11,7 +11,6 @@ from .. import app
 from ..user import auth
 
 from ...game_room import GameRoom
-from ...message import Message, MessageType
 from ...puzzle import Puzzle
 from ...exceptions import CodeRushException
 

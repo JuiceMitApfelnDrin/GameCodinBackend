@@ -2,7 +2,6 @@ from sanic import text, json
 from sanic.request import Request
 
 from ..game_room import GameRoom
-from ..message import Message, MessageType
 from ..puzzle import Puzzle
 from ..exceptions import CodeRushException
 
